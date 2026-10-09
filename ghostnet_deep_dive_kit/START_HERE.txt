@@ -1,0 +1,15 @@
+GHOSTNET: Deep Dive - starter kit
+
+1. Make a new empty folder for the game, for example
+   C:\Makarand\Nishaad\Programming_All\ghostnet-deep-dive
+2. Unzip this kit into it, so the folder contains BUILD_PROMPT.md and assets\
+3. Open Claude Code in that folder and send:
+
+   Read BUILD_PROMPT.md and assets/sprites/manifest.json, then build the game
+   following the build order. Stop after each milestone and tell me what to play-test.
+   My Godot is at: <full path to Godot_v4.6.2-stable_win64.exe>
+
+4. After each milestone, open the folder in Godot 4.6.2, press F5 and play.
+   Tell Claude Code what feels wrong (too slow, too floaty, too hard) and it will retune.
+
+assets\sprites_preview.jpg shows every sprite in the pack.

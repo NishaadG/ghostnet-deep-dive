@@ -1,0 +1,456 @@
+{
+ "nova_leg_back.png": {
+  "size": [
+   380,
+   220
+  ],
+  "note": "All nova_* and gear_* sprites share this canvas; stack them at the same position, centered. Origin (torso centre) is at pixel (210,110). Nova faces RIGHT. Rotate around pivot for the kick.",
+  "pivot": [
+   166,
+   114
+  ]
+ },
+ "nova_arm_back.png": {
+  "size": [
+   380,
+   220
+  ],
+  "note": "All nova_* and gear_* sprites share this canvas; stack them at the same position, centered. Origin (torso centre) is at pixel (210,110). Nova faces RIGHT.",
+  "pivot": [
+   228,
+   116
+  ]
+ },
+ "nova_body.png": {
+  "size": [
+   380,
+   220
+  ],
+  "note": "All nova_* and gear_* sprites share this canvas; stack them at the same position, centered. Origin (torso centre) is at pixel (210,110). Nova faces RIGHT. Torso, tank, helmet and face."
+ },
+ "nova_leg_front.png": {
+  "size": [
+   380,
+   220
+  ],
+  "note": "All nova_* and gear_* sprites share this canvas; stack them at the same position, centered. Origin (torso centre) is at pixel (210,110). Nova faces RIGHT. Rotate around pivot, opposite phase to back leg.",
+  "pivot": [
+   166,
+   108
+  ]
+ },
+ "nova_arm_front.png": {
+  "size": [
+   380,
+   220
+  ],
+  "note": "All nova_* and gear_* sprites share this canvas; stack them at the same position, centered. Origin (torso centre) is at pixel (210,110). Nova faces RIGHT. Holds the cutter (glowing tip at about (335,124)).",
+  "pivot": [
+   238,
+   118
+  ]
+ },
+ "nova_full.png": {
+  "size": [
+   380,
+   220
+  ],
+  "note": "Whole Nova pre-assembled, for menus or as a fallback."
+ },
+ "gear_sled.png": {
+  "size": [
+   380,
+   220
+  ],
+  "note": "Dive sled under Nova. Draw behind nova_body."
+ },
+ "gear_wing.png": {
+  "size": [
+   380,
+   220
+  ],
+  "note": "Manta wing. Draw behind everything."
+ },
+ "gear_thruster.png": {
+  "size": [
+   380,
+   220
+  ],
+  "note": "Thruster on the tank. Draw above nova_body."
+ },
+ "gear_flame.png": {
+  "size": [
+   380,
+   220
+  ],
+  "note": "Thruster flame; show only while boosting, flicker its scale.",
+  "pivot": [
+   104,
+   71
+  ]
+ },
+ "gear_ballast.png": {
+  "size": [
+   380,
+   220
+  ],
+  "note": "Ballast weights on the belt. Draw above nova_body."
+ },
+ "pip_cyan.png": {
+  "size": [
+   130,
+   130
+  ],
+  "note": "Pip faces RIGHT. Swap colour by oxygen: cyan ok, orange low, red critical."
+ },
+ "pip_orange.png": {
+  "size": [
+   130,
+   130
+  ],
+  "note": "Pip faces RIGHT. Swap colour by oxygen: cyan ok, orange low, red critical."
+ },
+ "pip_red.png": {
+  "size": [
+   130,
+   130
+  ],
+  "note": "Pip faces RIGHT. Swap colour by oxygen: cyan ok, orange low, red critical."
+ },
+ "whale_lit.png": {
+  "size": [
+   1180,
+   470
+  ],
+  "note": "The Lumen, freed and glowing. Faces LEFT."
+ },
+ "whale_dim.png": {
+  "size": [
+   1180,
+   470
+  ],
+  "note": "The Lumen, pinned and dim. Faces LEFT. Draw net_wall sprites over it."
+ },
+ "turtle.png": {
+  "size": [
+   230,
+   150
+  ],
+  "note": "Trapped animal. Faces RIGHT."
+ },
+ "fish_0.png": {
+  "size": [
+   60,
+   30
+  ],
+  "note": "Small fish, faces RIGHT. fish_3 is the dull trapped colour."
+ },
+ "fish_1.png": {
+  "size": [
+   60,
+   30
+  ],
+  "note": "Small fish, faces RIGHT. fish_3 is the dull trapped colour."
+ },
+ "fish_2.png": {
+  "size": [
+   60,
+   30
+  ],
+  "note": "Small fish, faces RIGHT. fish_3 is the dull trapped colour."
+ },
+ "fish_3.png": {
+  "size": [
+   60,
+   30
+  ],
+  "note": "Small fish, faces RIGHT. fish_3 is the dull trapped colour."
+ },
+ "net_0.png": {
+  "size": [
+   203,
+   260
+  ],
+  "note": "Loose ghost net with trailing threads. Sway with a sine rotation."
+ },
+ "net_1.png": {
+  "size": [
+   261,
+   322
+  ],
+  "note": "Loose ghost net with trailing threads. Sway with a sine rotation."
+ },
+ "net_2.png": {
+  "size": [
+   319,
+   384
+  ],
+  "note": "Loose ghost net with trailing threads. Sway with a sine rotation."
+ },
+ "net_3.png": {
+  "size": [
+   174,
+   228
+  ],
+  "note": "Loose ghost net with trailing threads. Sway with a sine rotation."
+ },
+ "net_wall.png": {
+  "size": [
+   160,
+   720
+  ],
+  "note": "Story net wall segment, tiles vertically. Stack to span the corridor height."
+ },
+ "net_wall_torn.png": {
+  "size": [
+   160,
+   720
+  ],
+  "note": "Same wall after it breaks."
+ },
+ "junk_0.png": {
+  "size": [
+   60,
+   80
+  ],
+  "note": "Plastic debris, decoration and minor pickups. Spin slowly."
+ },
+ "junk_1.png": {
+  "size": [
+   60,
+   80
+  ],
+  "note": "Plastic debris, decoration and minor pickups. Spin slowly."
+ },
+ "junk_2.png": {
+  "size": [
+   60,
+   80
+  ],
+  "note": "Plastic debris, decoration and minor pickups. Spin slowly."
+ },
+ "tag.png": {
+  "size": [
+   70,
+   46
+  ],
+  "note": "Fleet tag: the currency icon and the pickup dropped by cut nets."
+ },
+ "o2_canister.png": {
+  "size": [
+   80,
+   110
+  ],
+  "note": "Oxygen pickup floating in the trench. Bob up and down."
+ },
+ "fuel_cell.png": {
+  "size": [
+   80,
+   110
+  ],
+  "note": "Thruster fuel pickup."
+ },
+ "bubble.png": {
+  "size": [
+   40,
+   40
+  ],
+  "note": "Bubble particle texture."
+ },
+ "spark.png": {
+  "size": [
+   32,
+   32
+  ],
+  "note": "Spark particle texture for cutting."
+ },
+ "glow.png": {
+  "size": [
+   256,
+   256
+  ],
+  "note": "Soft white glow. Use with additive blend and modulate colour behind corals, Pip, pickups."
+ },
+ "light_ray.png": {
+  "size": [
+   220,
+   720
+  ],
+  "note": "Light shaft for shallow zones; low opacity, slow sway."
+ },
+ "coral_lit_0.png": {
+  "size": [
+   220,
+   260
+  ],
+  "note": "Glowing coral; bottom-centre sits on the floor."
+ },
+ "coral_lit_1.png": {
+  "size": [
+   220,
+   260
+  ],
+  "note": "Glowing coral; bottom-centre sits on the floor."
+ },
+ "coral_lit_2.png": {
+  "size": [
+   220,
+   260
+  ],
+  "note": "Glowing coral; bottom-centre sits on the floor."
+ },
+ "coral_lit_3.png": {
+  "size": [
+   220,
+   260
+  ],
+  "note": "Glowing coral; bottom-centre sits on the floor."
+ },
+ "coral_lit_4.png": {
+  "size": [
+   220,
+   260
+  ],
+  "note": "Glowing coral; bottom-centre sits on the floor."
+ },
+ "coral_lit_5.png": {
+  "size": [
+   220,
+   260
+  ],
+  "note": "Glowing coral; bottom-centre sits on the floor."
+ },
+ "coral_lit_6.png": {
+  "size": [
+   220,
+   260
+  ],
+  "note": "Glowing coral; bottom-centre sits on the floor."
+ },
+ "coral_lit_7.png": {
+  "size": [
+   220,
+   260
+  ],
+  "note": "Glowing coral; bottom-centre sits on the floor."
+ },
+ "coral_lit_8.png": {
+  "size": [
+   220,
+   260
+  ],
+  "note": "Glowing coral; bottom-centre sits on the floor."
+ },
+ "coral_lit_9.png": {
+  "size": [
+   220,
+   260
+  ],
+  "note": "Glowing coral; bottom-centre sits on the floor."
+ },
+ "coral_dead_0.png": {
+  "size": [
+   220,
+   260
+  ],
+  "note": "Dead coral; swap to a lit one when reef light returns."
+ },
+ "coral_dead_1.png": {
+  "size": [
+   220,
+   260
+  ],
+  "note": "Dead coral; swap to a lit one when reef light returns."
+ },
+ "coral_dead_2.png": {
+  "size": [
+   220,
+   260
+  ],
+  "note": "Dead coral; swap to a lit one when reef light returns."
+ },
+ "coral_dead_3.png": {
+  "size": [
+   220,
+   260
+  ],
+  "note": "Dead coral; swap to a lit one when reef light returns."
+ },
+ "tower_0.png": {
+  "size": [
+   170,
+   700
+  ],
+  "note": "Drowned city tower. Its flat roof (top edge) is a shelf Nova glides over; place roofs on the floor line."
+ },
+ "tower_1.png": {
+  "size": [
+   230,
+   420
+  ],
+  "note": "Drowned city tower. Its flat roof (top edge) is a shelf Nova glides over; place roofs on the floor line."
+ },
+ "tower_2.png": {
+  "size": [
+   230,
+   640
+  ],
+  "note": "Drowned city tower. Its flat roof (top edge) is a shelf Nova glides over; place roofs on the floor line."
+ },
+ "tower_3.png": {
+  "size": [
+   190,
+   640
+  ],
+  "note": "Drowned city tower. Its flat roof (top edge) is a shelf Nova glides over; place roofs on the floor line."
+ },
+ "boat07.png": {
+  "size": [
+   620,
+   280
+  ],
+  "note": "Boat 07, bow LEFT, stern and gantry RIGHT. Waterline is at y=250. The launch ramp starts at the stern."
+ },
+ "captain_stern.png": {
+  "size": [
+   420,
+   440
+  ],
+  "note": "Captain Vale, Net Return levels 0-2."
+ },
+ "captain_soft.png": {
+  "size": [
+   420,
+   440
+  ],
+  "note": "Captain Vale, Net Return levels 3-5."
+ },
+ "nova_bust.png": {
+  "size": [
+   420,
+   440
+  ],
+  "note": "Nova portrait for dock and results screens."
+ },
+ "nova_bust_smile.png": {
+  "size": [
+   420,
+   440
+  ],
+  "note": "Nova portrait for good results and the ending."
+ },
+ "logo.png": {
+  "size": [
+   1000,
+   260
+  ],
+  "note": "Title logo."
+ },
+ "dock_bg.png": {
+  "size": [
+   1280,
+   720
+  ],
+  "note": "Dock menu background at dawn. Put shop panels on top."
+ }
+}
