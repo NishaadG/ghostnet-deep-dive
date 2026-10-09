@@ -7,7 +7,7 @@ var _tag_icon: Texture2D = load("res://assets/sprites/tag.png")
 
 
 func _ready() -> void:
-	set_anchors_preset(Control.PRESET_FULL_RECT)
+	size = Vector2(1280, 720)
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 
 

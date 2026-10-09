@@ -5,6 +5,8 @@ extends Node
 
 
 func _ready() -> void:
+	Game.save_enabled = false
+	Game.debug_reset()                       # start from a fresh save, in memory only
 	var run := Run.new()
 	add_child(run)
 	run.player.scripted = true

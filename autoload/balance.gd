@@ -73,6 +73,30 @@ const UPGRADE_COSTS := {
 	"pip": [10, 20, 35],
 	"net_return": [12, 25, 40, 60, 90],
 }
+# What the dock shows for each upgrade. "icon" is a sprite cropped to its visible part.
+const UPGRADE_INFO := {
+	"ramp": {"name": "Ramp", "effect": "+12% launch speed", "icon": "boat07"},
+	"sled": {"name": "Dive Sled", "effect": "+10% launch speed, softer splash, -8% drag", "icon": "gear_sled"},
+	"wing": {"name": "Manta Wing", "effect": "+35% wing turn: longer glides", "icon": "gear_wing"},
+	"thruster": {"name": "Thruster", "effect": "+25% thrust", "icon": "gear_thruster"},
+	"fuel": {"name": "Fuel Tank", "effect": "+1 s of thruster fuel", "icon": "fuel_cell"},
+	"o2": {"name": "O2 Tank", "effect": "+6 s of oxygen", "icon": "o2_canister"},
+	"ballast": {"name": "Ballast", "effect": "+15% sink rate and wall damage", "icon": "gear_ballast"},
+	"cutter": {"name": "Cutter", "effect": "Nets slow you less. +20% wall damage", "icon": "nova_arm_front"},
+	"pip": {"name": "Pip", "effect": "Pickup magnet. Lv 3: arrow to next O2", "icon": "pip_cyan"},
+	"net_return": {"name": "Net Return", "effect": "Fewer loose nets in the water", "icon": "net_0"},
+}
+
+# Captain Vale's line for each Net Return level (level 5 and beyond use the last one).
+const CAPTAIN_LINES := [
+	"A new net costs less than an hour of hauling.",
+	"Fine. We log every tag you bring up.",
+	"There's a return bin on the dock now.",
+	"Boats haul their snags back. It costs us an hour.",
+	"Every net is tagged and tracked.",
+	"Every net that goes down comes back up.",
+]
+
 # Loose-net density multiplier for Net Return level 0..5.
 const NET_RETURN_FACTORS := [1.0, 0.85, 0.70, 0.55, 0.45, 0.35]
 

@@ -17,17 +17,16 @@ var _hint: Label
 
 
 func _ready() -> void:
-	set_anchors_preset(Control.PRESET_FULL_RECT)
+	size = Vector2(1280, 720)
 	var backdrop := ColorRect.new()
 	backdrop.color = Color(0.02, 0.07, 0.12, 0.94)
-	backdrop.set_anchors_preset(Control.PRESET_FULL_RECT)
+	backdrop.size = Vector2(1280, 720)
 	add_child(backdrop)
 	var portrait := TextureRect.new()
 	var good: bool = result["tags"] >= 15
 	portrait.texture = load("res://assets/sprites/nova_bust_smile.png" if good else "res://assets/sprites/nova_bust.png")
-	portrait.position = Vector2(30, 230)
-	portrait.custom_minimum_size = Vector2(380, 400)
 	portrait.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	portrait.position = Vector2(30, 230)
 	portrait.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	portrait.size = Vector2(380, 400)
 	add_child(portrait)
