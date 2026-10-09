@@ -192,7 +192,7 @@ func _check_walls() -> void:
 # damage = speed * ballast * cutter. A wall that survives keeps its damage for next time.
 func _hit_wall(index: int, wall: NetWall) -> void:
 	var before := wall.hp
-	wall.hit(player.vel.length() * stats["ballast_mult"] * stats["cutter_mult"])
+	wall.hit(player.vel.length() * stats["ballast_mult"] * stats["cutter_mult"] * Balance.WALL_DAMAGE_SCALE)
 	Game.wall_hp[str(index)] = wall.hp
 	Game.save_game()
 	_bump(16.0)

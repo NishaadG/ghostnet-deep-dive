@@ -47,11 +47,12 @@ const NET_RATE := {"reef": 0.9, "city": 1.4, "slope": 1.1, "trench": 0.9}   # lo
 # ---- Net walls: the story goals. HP persists between dives. ----
 # damage on contact = speed * ballast_mult * cutter_mult
 const WALLS := [
-	{"at_m": 400, "hp": 1400.0, "bonus": 25, "name": "Reef Gate"},
-	{"at_m": 1500, "hp": 5200.0, "bonus": 60, "name": "City Seal"},
-	{"at_m": 2800, "hp": 12000.0, "bonus": 110, "name": "Slope Curtain"},
-	{"at_m": 3600, "hp": 26000.0, "bonus": 200, "name": "The Lumen's Net"},
+	{"at_m": 400, "hp": 1000.0, "bonus": 25, "name": "Reef Gate"},
+	{"at_m": 1500, "hp": 3000.0, "bonus": 60, "name": "City Seal"},
+	{"at_m": 2800, "hp": 7000.0, "bonus": 110, "name": "Slope Curtain"},
+	{"at_m": 3600, "hp": 14000.0, "bonus": 200, "name": "The Lumen's Net"},
 ]
+const WALL_DAMAGE_SCALE := 1.5       # tuning knob: how hard walls are to tear (see tests/economy.gd)
 const WALL_SPEED_KEEP := 0.6         # Nova keeps this much speed after tearing through
 
 # ---- Terrain ----
@@ -78,6 +79,9 @@ const ZONES := [
 		"water_top": Color("03081a"), "water_bottom": Color("010208"), "rock": Color("050a18"),
 		"accent": Color("ffb347"), "tint": Color("a0a0d0")},
 ]
+
+const TAG_METRES := 40.0             # one tag per this many metres of distance and of depth
+const COST_SCALE := 0.5              # multiplies every upgrade price: the main economy knob
 
 # ---- Gear and upgrades ----
 # Gear (craft, booster, cutter) are named tiers: owning tier 3 means you carry that item.
@@ -165,9 +169,9 @@ func corridor_at(x_px: float) -> float:
 
 
 # Tags earned by a dive. Same formula the results screen shows line by line.
-# Distance and depth count one tag per 20 m, so tags stay scarce.
+# Distance and depth count one tag per 40 m, so tags stay scarce.
 func tags_for(distance_m: float, depth_m: float, nets_cut: int, animals_freed: int, wall_bonus: int) -> int:
-	return int(distance_m / 20.0) + int(depth_m / 20.0) + nets_cut + 3 * animals_freed + wall_bonus
+	return int(distance_m / TAG_METRES) + int(depth_m / TAG_METRES) + nets_cut + 3 * animals_freed + wall_bonus
 
 
 func upgrade_max(id: String) -> int:
@@ -189,8 +193,8 @@ func owned_name(id: String, level: int) -> String:
 func upgrade_cost(id: String, current_level: int) -> int:
 	var costs: Array = UPGRADE_COSTS[id]
 	if current_level < costs.size():
-		return costs[current_level]
-	return int(round(costs[-1] * pow(1.6, current_level - costs.size() + 1)))
+		return maxi(1, int(round(costs[current_level] * COST_SCALE)))
+	return int(round(costs[-1] * COST_SCALE * pow(1.6, current_level - costs.size() + 1)))
 
 
 func net_factor(net_return_level: int) -> float:

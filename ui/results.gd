@@ -28,8 +28,8 @@ func _ready() -> void:
 	add_child(_label(_reason_text(), Vector2(230, 134), 18, false, Color(Art.ICE, 0.75)))
 
 	var r := result
-	_add_row("Distance", "%d m", r["distance_m"], int(r["distance_m"] / 20.0), "1 tag per 20 m")
-	_add_row("Max depth", "%d m", r["max_depth_m"], int(r["max_depth_m"] / 20.0), "1 tag per 20 m")
+	_add_row("Distance", "%d m", r["distance_m"], int(r["distance_m"] / Balance.TAG_METRES), "1 tag per 40 m")
+	_add_row("Max depth", "%d m", r["max_depth_m"], int(r["max_depth_m"] / Balance.TAG_METRES), "1 tag per 40 m")
 	_add_row("Top speed", "%d px/s", r["top_speed"], -1, "")
 	_add_row("Nets cut", "%d", r["nets_cut"], int(r["nets_cut"]), "1 tag each")
 	_add_row("Animals freed", "%d", r["animals_freed"], 3 * int(r["animals_freed"]), "3 tags each")

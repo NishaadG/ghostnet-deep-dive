@@ -22,7 +22,7 @@ func _ready() -> void:
 	Game.save_enabled = false
 	var totals: Array[int] = []
 	for r in runs:
-		var finished_at := _play_through(clumsy, r + 1, r == 0)
+		var finished_at: int = await _play_through(clumsy, r + 1, r == 0)
 		totals.append(finished_at)
 		print("RUN %d: story finished on dive %d" % [r + 1, finished_at])
 	print("ECONOMY clumsiness %.2f  dives to finish: %s" % [clumsy, str(totals)])
@@ -54,13 +54,14 @@ func _play_through(clumsy: float, seed_value: int, verbose: bool) -> int:
 		await get_tree().process_frame
 		Game.bank_run(result)
 		var spent := _shop()
-		if verbose:
+		if _walls_down() > walls_done:
+			walls_done = _walls_down()
+			print("   wall %d torn on dive %d" % [walls_done, dive])
+		if verbose and (dive <= 12 or dive % 5 == 0):
 			print("dive %2d: %5d m  %3d tags (now %3d) %s  craft %d booster %d cutter %d  walls %d  %s" % [dive, result["distance_m"], result["tags"],
 					Game.tags, spent, Game.level("craft"), Game.level("booster"), Game.level("cutter"), _walls_down(), result["reason"]])
 		if freed:
 			return dive
-		if _walls_down() > walls_done:
-			walls_done = _walls_down()
 	return MAX_DIVES
 
 

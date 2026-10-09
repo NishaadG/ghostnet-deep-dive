@@ -15,7 +15,7 @@ func _ready() -> void:
 	Game.new_game(1)
 	check(not Game.can_buy("craft"), "cannot buy with 0 tags")
 	Game.tags = 100
-	check(Game.buy("craft") and Game.level("craft") == 1 and Game.tags == 70, "buy Skim Sled for 30 tags")
+	check(Game.buy("craft") and Game.level("craft") == 1 and Game.tags == 100 - Balance.upgrade_cost("craft", 0), "buy Skim Sled")
 	check(Balance.owned_name("craft", 1) == "Skim Sled", "craft tier 1 is the Skim Sled")
 	# every upgrade changes the stats it promises to
 	var base := Balance.stats_for({})
@@ -42,7 +42,7 @@ func _ready() -> void:
 	Game.story_complete = true
 	check(Game.buy("pip") and Game.level("pip") == 4, "plain upgrades go past the cap in Endless")
 	check(not Game.can_buy("craft"), "gear never goes past the top tier")
-	check(Balance.upgrade_cost("pip", 3) == int(round(220 * 1.6)), "endless cost = 1.6x the last")
+	check(Balance.upgrade_cost("pip", 3) == int(round(220 * Balance.COST_SCALE * 1.6)), "endless cost = 1.6x the last")
 	# walls
 	check(Game.next_wall() == 0, "first wall is next")
 	Game.wall_hp["0"] = 0.0
@@ -59,7 +59,7 @@ func _ready() -> void:
 	Game.delete_slot(1)
 	check(Game.slot_summary(1).is_empty(), "deleted slot is empty")
 	# tags formula: one tag per 20 m
-	check(Balance.tags_for(100.0, 40.0, 2, 1, 0) == 5 + 2 + 2 + 3, "tags formula")
+	check(Balance.tags_for(120.0, 80.0, 2, 1, 0) == 3 + 2 + 2 + 3, "tags formula")
 	# screens build without errors
 	Game.new_game(1)
 	for screen in [Title.new(), SlotSelect.new(), Workshop.new(), SettingsPanel.new(), PauseMenu.new()]:
