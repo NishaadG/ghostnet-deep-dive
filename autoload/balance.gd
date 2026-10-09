@@ -14,13 +14,13 @@ const ENTRY_STEEP_DEG := 40.0        # facing this steep or steeper = no loss
 const ENTRY_MAX_LOSS := 0.4
 
 # ---- Underwater flight model (see player.gd) ----
-const GRAVITY := 800.0               # sinking weight
+const GRAVITY := 700.0               # sinking weight
 const TILT_RATE := deg_to_rad(130.0)
-const ANGLE_MIN := deg_to_rad(-25.0)
+const ANGLE_MIN := deg_to_rad(-35.0)
 const ANGLE_MAX := deg_to_rad(85.0)
-const WING_TURN := 2.0               # rad/s the velocity may turn toward the nose
-const DRAG := 0.0026
-const DRAG_MISALIGN := 0.0005        # extra drag when nose and motion disagree
+const WING_TURN := 2.5               # rad/s the velocity may turn toward the nose
+const DRAG := 0.0022
+const DRAG_MISALIGN := 0.0003        # extra drag when nose and motion disagree
 const THRUST := 650.0
 
 # ---- Touching the world ----
