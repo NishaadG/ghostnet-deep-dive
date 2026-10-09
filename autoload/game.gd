@@ -1,50 +1,65 @@
 extends Node
-# Global state shared by every screen: upgrade levels now, tags/save in milestone 3.
+# Global state shared by every screen: the loaded save slot, settings, and upgrade rules.
+# Three save slots live in user://save_1.json ... save_3.json; settings in user://settings.json.
 
-var levels := {}   # upgrade id -> level; a missing id means level 0
+const SLOT_COUNT := 3
+
+var slot := 0                  # 0 = no slot loaded yet; 1..3 once the player picks one
+var levels := {}               # upgrade id -> level / gear tier; a missing id means 0
 var tags := 0
 var best_distance := 0.0
 var dives := 0
 var animals_freed_total := 0
-var wall_hp := {}              # wall index (as text) -> remaining HP; filled in milestone 4
+var nets_cut_total := 0
+var wall_hp := {}              # wall index (as text) -> remaining HP; missing = untouched
 var story_complete := false    # true after the Lumen is freed; unlocks Endless mode
 var endless_mode := false
+
+var settings := {"master": 0.8, "music": 0.7, "sfx": 0.9, "fullscreen": false, "shake": true, "touch": false, "last_slot": 0}
+var save_enabled := true       # tests switch this off so they never touch a real save
+var save_dir := "user://"      # tests point this at a throwaway folder name prefix
 var ui_theme := Theme.new()
-var _icons := {}
 var font: Font = preload("res://assets/fonts/Poppins-Medium.ttf")
 var font_bold: Font = preload("res://assets/fonts/Poppins-Bold.ttf")
-
-
-var save_path := "user://save.json"      # tests point this at a throwaway file
-var save_enabled := true      # tests switch this off so they never touch a real save
 
 
 func _ready() -> void:
 	_setup_input()
 	ui_theme.default_font = font
 	ui_theme.default_font_size = 18
-	load_game()
+	load_settings()
 
 
 func level(id: String) -> int:
 	return levels.get(id, 0)
 
 
-# Called by main when a dive ends: bank the tags and update records.
-func bank_run(result: Dictionary) -> void:
-	tags += int(result["tags"])
-	dives += 1
-	animals_freed_total += int(result["animals_freed"])
-	best_distance = maxf(best_distance, float(result["distance_m"]))
-	save_game()
+# ---- Walls (story goals) ----
+
+func wall_remaining(index: int) -> float:
+	return wall_hp.get(str(index), Balance.WALLS[index]["hp"])
+
+
+func wall_broken(index: int) -> bool:
+	return wall_remaining(index) <= 0.0
+
+
+# The next wall that still stands, or -1 when all four are down.
+func next_wall() -> int:
+	for i in Balance.WALLS.size():
+		if not wall_broken(i):
+			return i
+	return -1
 
 
 # ---- Upgrades ----
 
 func can_buy(id: String) -> bool:
 	var current := level(id)
-	if current >= Balance.upgrade_max(id) and not story_complete:
-		return false                     # past the cap only in Endless
+	if current >= Balance.upgrade_max(id):
+		# Only plain upgrades go past the cap, and only in Endless once the story is done.
+		if Balance.is_gear(id) or not story_complete:
+			return false
 	return tags >= Balance.upgrade_cost(id, current)
 
 
@@ -61,44 +76,82 @@ func reef_lights() -> int:
 	return animals_freed_total
 
 
-# A sprite cropped to its visible pixels, so big transparent canvases make usable icons.
-func icon(sprite_name: String) -> Texture2D:
-	if not _icons.has(sprite_name):
-		var texture: Texture2D = load("res://assets/sprites/%s.png" % sprite_name)
-		var used := texture.get_image().get_used_rect()
-		var atlas := AtlasTexture.new()
-		atlas.atlas = texture
-		atlas.region = used if used.size.x > 0 else Rect2(Vector2.ZERO, texture.get_size())
-		_icons[sprite_name] = atlas
-	return _icons[sprite_name]
+# Called by main when a dive ends: bank the tags and update records.
+func bank_run(result: Dictionary) -> void:
+	tags += int(result["tags"])
+	dives += 1
+	animals_freed_total += int(result["animals_freed"])
+	nets_cut_total += int(result["nets_cut"])
+	best_distance = maxf(best_distance, float(result["distance_m"]))
+	save_game()
 
 
-# ---- Save / load (user://save.json) ----
+# ---- Save slots ----
+
+func slot_path(slot_number: int) -> String:
+	return "%ssave_%d.json" % [save_dir, slot_number]
+
+
+# What the slot-select screen shows. Empty dictionary = empty slot.
+func slot_summary(slot_number: int) -> Dictionary:
+	var path := slot_path(slot_number)
+	if not FileAccess.file_exists(path):
+		return {}
+	var parsed: Variant = JSON.parse_string(FileAccess.get_file_as_string(path))
+	if not parsed is Dictionary:
+		return {}
+	return parsed
+
+
+func new_game(slot_number: int) -> void:
+	slot = slot_number
+	_clear_progress()
+	save_game()
+
+
+func continue_game(slot_number: int) -> void:
+	slot = slot_number
+	_clear_progress()
+	_apply(slot_summary(slot_number))
+
+
+func delete_slot(slot_number: int) -> void:
+	if FileAccess.file_exists(slot_path(slot_number)):
+		DirAccess.remove_absolute(ProjectSettings.globalize_path(slot_path(slot_number)))
+
 
 func save_game() -> void:
-	if not save_enabled:
+	if not save_enabled or slot == 0:
 		return
 	var data := {
 		"tags": tags, "levels": levels, "wall_hp": wall_hp, "best_distance": best_distance,
-		"dives": dives, "animals_freed": animals_freed_total, "story_complete": story_complete,
-		"endless_mode": endless_mode,
+		"dives": dives, "animals_freed": animals_freed_total, "nets_cut": nets_cut_total,
+		"story_complete": story_complete, "endless_mode": endless_mode,
+		"saved_at": Time.get_datetime_string_from_system(),
 	}
-	var file := FileAccess.open(save_path, FileAccess.WRITE)
+	var file := FileAccess.open(slot_path(slot), FileAccess.WRITE)
 	if file:
 		file.store_string(JSON.stringify(data))
 
 
-func load_game() -> void:
-	if not FileAccess.file_exists(save_path):
-		return
-	var parsed: Variant = JSON.parse_string(FileAccess.get_file_as_string(save_path))
-	if not parsed is Dictionary:
-		return                           # a corrupt save just means a fresh start
-	var data: Dictionary = parsed
+func _clear_progress() -> void:
+	levels = {}
+	wall_hp = {}
+	tags = 0
+	best_distance = 0.0
+	dives = 0
+	animals_freed_total = 0
+	nets_cut_total = 0
+	story_complete = false
+	endless_mode = false
+
+
+func _apply(data: Dictionary) -> void:
 	tags = int(data.get("tags", 0))
 	best_distance = float(data.get("best_distance", 0.0))
 	dives = int(data.get("dives", 0))
 	animals_freed_total = int(data.get("animals_freed", 0))
+	nets_cut_total = int(data.get("nets_cut", 0))
 	story_complete = bool(data.get("story_complete", false))
 	endless_mode = bool(data.get("endless_mode", false)) and story_complete
 	levels = {}
@@ -109,17 +162,37 @@ func load_game() -> void:
 		wall_hp[key] = float(data["wall_hp"][key])
 
 
+# ---- Settings (shared by all slots) ----
+
+func load_settings() -> void:
+	var path := save_dir + "settings.json"
+	if FileAccess.file_exists(path):
+		var parsed: Variant = JSON.parse_string(FileAccess.get_file_as_string(path))
+		if parsed is Dictionary:
+			for key in settings:
+				if parsed.has(key):
+					settings[key] = parsed[key]
+	apply_settings()
+
+
+func save_settings() -> void:
+	if not save_enabled:
+		return
+	var file := FileAccess.open(save_dir + "settings.json", FileAccess.WRITE)
+	if file:
+		file.store_string(JSON.stringify(settings))
+
+
+# Volumes are applied by the Audio autoload; fullscreen is applied here.
+func apply_settings() -> void:
+	if not DisplayServer.get_name() == "headless":
+		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN if settings["fullscreen"] else DisplayServer.WINDOW_MODE_WINDOWED)
+
+
 # ---- Debug keys (main.gd calls these on F1 to F4) ----
 
 func debug_reset() -> void:
-	levels = {}
-	wall_hp = {}
-	tags = 0
-	best_distance = 0.0
-	dives = 0
-	animals_freed_total = 0
-	story_complete = false
-	endless_mode = false
+	_clear_progress()
 	save_game()
 
 
@@ -129,8 +202,8 @@ func debug_add_tags() -> void:
 
 
 func debug_mid_save() -> void:
-	levels = {"ramp": 2, "sled": 2, "wing": 2, "thruster": 1, "fuel": 1, "o2": 2,
-			"ballast": 1, "cutter": 2, "pip": 1, "net_return": 4}
+	levels = {"craft": 2, "booster": 2, "cutter": 2, "ramp": 2, "fuel": 1, "o2": 2,
+			"ballast": 1, "pip": 1, "net_return": 4}
 	tags = maxi(tags, 100)
 	dives = maxi(dives, 12)
 	animals_freed_total = maxi(animals_freed_total, 6)

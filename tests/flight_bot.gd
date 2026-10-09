@@ -1,13 +1,20 @@
 class_name FlightBot
 extends RefCounted
-# A simple "player" used by the smoke test and the tuning script:
-# dive to build speed, pull up to glide, repeat. Not smart, just plausible.
+# A simple "player" used by the tests: dive to build speed, pull up to glide, repeat.
+# `clumsiness` (0 = perfect, 1 = very sloppy) makes it fly like a person: it wanders off its
+# target angle, reacts late and often misses nets. Used by tests/economy.gd to tune the economy.
+
+var spawner: Spawner         # optional: when set, the bot steers toward the nearest net ahead
+var clumsiness := 0.0
+var rng := RandomNumberGenerator.new()
+var _wander := 0.0           # current error in degrees
+var _wander_timer := 0.0
+var _hunt := true
+var _hunt_timer := 0.0
 
 
-var spawner: Spawner   # optional: when set, the bot also steers toward the nearest net ahead
-
-
-func steer(p: Player) -> void:
+func steer(p: Player, delta := 1.0 / 60.0) -> void:
+	_update_mistakes(delta)
 	var clearance := p.terrain.floor_y(p.position.x) - p.position.y
 	var target_deg := 8.0
 	if p.state != Player.State.WATER:
@@ -17,11 +24,23 @@ func steer(p: Player) -> void:
 	elif p.vel.length() < 420.0 and clearance > 420.0:
 		target_deg = 60.0                                  # slow and high: plunge for speed
 	var net := _nearest_net_ahead(p)
-	if net and p.state == Player.State.WATER:
-		var to_net := net.position - p.position
-		target_deg = clampf(rad_to_deg(to_net.angle()), -30.0, 70.0)
-	p.tilt_input = clampf((deg_to_rad(target_deg) - p.angle) * 6.0, -1.0, 1.0)
-	p.thrust_input = p.state == Player.State.WATER and p.vel.length() < 150.0
+	if net and p.state == Player.State.WATER and _hunt:
+		target_deg = clampf(rad_to_deg((net.position - p.position).angle()), -30.0, 70.0)
+	target_deg += _wander
+	var gain := 6.0 * (1.0 - 0.7 * clumsiness)             # a sloppy pilot turns the nose more slowly
+	p.tilt_input = clampf((deg_to_rad(target_deg) - p.angle) * gain, -1.0, 1.0)
+	p.thrust_input = p.state == Player.State.WATER and p.vel.length() < 150.0 and rng.randf() > clumsiness * 0.5
+
+
+func _update_mistakes(delta: float) -> void:
+	_wander_timer -= delta
+	if _wander_timer <= 0.0:
+		_wander = rng.randfn(0.0, 22.0 * clumsiness)
+		_wander_timer = rng.randf_range(0.3, 1.0)
+	_hunt_timer -= delta
+	if _hunt_timer <= 0.0:
+		_hunt = rng.randf() > clumsiness * 0.8             # sloppy pilots often ignore nets
+		_hunt_timer = rng.randf_range(0.5, 2.0)
 
 
 func _nearest_net_ahead(p: Player) -> Net:

@@ -1,101 +1,108 @@
 class_name Net
 extends Node2D
-# A loose ghost net. It sways, and when Nova touches it, it is cut in two halves
+# A loose ghost net: a glowing mesh that sways. Touch it and it is cut into two halves
 # that drift apart. If an animal is trapped inside, it swims free.
+# The mesh is drawn by code every frame from a grid of points, so it can sway and split.
+
+const COLUMNS := 8
+const ROWS := 7
 
 var radius := 70.0
 var has_animal := false
 var is_cut := false
 
-var _sprite: Sprite2D
-var _animal: Sprite2D
+var _size := Vector2(200, 240)
 var _phase := randf() * TAU
 var _age := 0.0
+var _cut_t := 0.0                # 0 = whole, 1 = fully drifted apart and faded
+var _animal: Animal
 
 
 func setup(kind: int, with_animal: bool) -> void:
-	var texture: Texture2D = load("res://assets/sprites/net_%d.png" % kind)
-	_sprite = Sprite2D.new()
-	_sprite.texture = texture
-	add_child(_sprite)
-	radius = minf(texture.get_width(), texture.get_height()) * 0.38
+	var sizes := [Vector2(200, 250), Vector2(250, 300), Vector2(300, 340), Vector2(170, 220)]
+	_size = sizes[kind % 4]
+	radius = minf(_size.x, _size.y) * 0.38
 	has_animal = with_animal
 	if with_animal:
-		_animal = Sprite2D.new()
-		# Big nets hold a turtle, small ones a (dull, trapped-colour) fish.
-		if kind == 1 or kind == 2:
-			_animal.texture = load("res://assets/sprites/turtle.png")
-			_animal.scale = Vector2(0.6, 0.6)
-		else:
-			_animal.texture = load("res://assets/sprites/fish_3.png")
-			_animal.scale = Vector2(1.8, 1.8)
+		_animal = Animal.new()
+		_animal.setup("turtle" if kind == 1 or kind == 2 else "fish", 1.0 if kind == 1 or kind == 2 else 1.7)
+		_animal.position = Vector2(0, -_size.y * 0.1)
 		add_child(_animal)
 
 
 func _process(delta: float) -> void:
-	if is_cut:
-		return
 	_age += delta
-	_sprite.rotation = sin(_age * 0.9 + _phase) * 0.1
-	_sprite.scale = Vector2(1.0 + sin(_age * 1.3 + _phase) * 0.03, 1.0 - sin(_age * 1.3 + _phase) * 0.03)
-	position.y += sin(_age * 0.5 + _phase) * 5.0 * delta                 # slow drift
-	if _animal:
-		_animal.position = Vector2(randf_range(-3, 3), randf_range(-3, 3))   # trapped animals shake
+	if not is_cut:
+		position.y += sin(_age * 0.5 + _phase) * 5.0 * delta           # slow drift
+	queue_redraw()
 
 
 func cut_open() -> void:
 	is_cut = true
-	var texture := _sprite.texture
-	var half_w := texture.get_width() / 2.0
-	_sprite.visible = false
-	for side in [-1, 1]:
-		var half := Sprite2D.new()
-		half.texture = texture
-		half.region_enabled = true
-		half.region_rect = Rect2(0 if side < 0 else half_w, 0, half_w, texture.get_height())
-		half.position = Vector2(side * half_w / 2.0, 0)
-		add_child(half)
-		var tween := create_tween().set_parallel(true)
-		tween.tween_property(half, "position", half.position + Vector2(side * 90, 60), 0.9)
-		tween.tween_property(half, "rotation", side * 0.5, 0.9)
-		tween.tween_property(half, "modulate:a", 0.0, 0.9)
 	_add_sparks()
+	create_tween().tween_property(self, "_cut_t", 1.0, 0.9)
 	if _animal:
-		_free_animal()
-	get_tree().create_timer(1.6).timeout.connect(queue_free)
+		_animal.free_swim(Vector2(520, -260))
+	get_tree().create_timer(1.7).timeout.connect(queue_free)
+
+
+# A grid point of the mesh. Rows narrow toward the bottom, like a bag of net.
+func _mesh_point(row: int, col: int) -> Vector2:
+	var v := row / float(ROWS - 1)
+	var u := col / float(COLUMNS - 1) * 2.0 - 1.0
+	var width := _size.x * 0.5 * (0.75 + 0.45 * sin(v * PI * 0.9 + 0.2)) * (1.0 - v * 0.25)
+	var sway := sin(_age * 1.2 + v * 2.2 + _phase) * 9.0 * v
+	return Vector2(u * width + sway, -_size.y * 0.45 + v * _size.y * 0.75)
+
+
+func _draw() -> void:
+	var fade := 1.0 - _cut_t
+	var mesh_color := Color(Art.NET_COLOR, 0.8 * fade)
+	var knot_color := Color(Art.ICE, 0.9 * fade)
+	Art.glow(self, Vector2.ZERO, _size.x * 0.75, Color(Art.CYAN, 0.12 * fade))
+	var mid := COLUMNS / 2
+	for row in ROWS:
+		for col in COLUMNS:
+			var p := _mesh_point(row, col) + _split_offset(col, mid)
+			if col + 1 < COLUMNS and not (is_cut and col + 1 == mid):          # cut: no strand across the middle
+				draw_line(p, _mesh_point(row, col + 1) + _split_offset(col + 1, mid), mesh_color, 1.6, true)
+			if row + 1 < ROWS:
+				draw_line(p, _mesh_point(row + 1, col) + _split_offset(col, mid), mesh_color, 1.6, true)
+			draw_circle(p, 2.2, knot_color)
+	# Floats along the top edge, and loose threads trailing from the bottom.
+	for col in range(0, COLUMNS, 2):
+		var top := _mesh_point(0, col) + _split_offset(col, mid)
+		Art.glow(self, top, 14.0, Color(Art.AMBER, 0.5 * fade))
+		draw_circle(top + Vector2(0, -4), 4.5, Color(Art.AMBER, fade))
+	for col in range(1, COLUMNS - 1, 2):
+		var start := _mesh_point(ROWS - 1, col) + _split_offset(col, mid)
+		var thread := PackedVector2Array()
+		for k in 6:
+			thread.append(start + Vector2(sin(_age * 1.4 + k * 0.8 + col) * 7.0 * k * 0.5, k * 17.0))
+		draw_polyline(thread, Color(Art.NET_COLOR, 0.45 * fade), 1.4, true)
+
+
+# Left half drifts left and down, right half right and down.
+func _split_offset(col: int, mid: int) -> Vector2:
+	if _cut_t == 0.0:
+		return Vector2.ZERO
+	var side := -1.0 if col < mid else 1.0
+	return Vector2(side * 90.0, 60.0) * _cut_t
 
 
 func _add_sparks() -> void:
 	var sparks := CPUParticles2D.new()
-	sparks.texture = load("res://assets/sprites/spark.png")
 	sparks.emitting = true
 	sparks.one_shot = true
 	sparks.explosiveness = 1.0
-	sparks.amount = 16
+	sparks.amount = 24
 	sparks.lifetime = 0.6
 	sparks.spread = 180.0
 	sparks.gravity = Vector2.ZERO
 	sparks.initial_velocity_min = 120.0
-	sparks.initial_velocity_max = 280.0
-	sparks.scale_amount_min = 0.5
-	sparks.scale_amount_max = 1.1
-	var additive := CanvasItemMaterial.new()
-	additive.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
-	sparks.material = additive
+	sparks.initial_velocity_max = 320.0
+	sparks.scale_amount_min = 2.0
+	sparks.scale_amount_max = 5.0
+	sparks.color = Color(Art.CYAN.lightened(0.5), 0.95)
+	sparks.material = Art.additive
 	add_child(sparks)
-
-
-# The animal tweens away with a trail of bubbles.
-func _free_animal() -> void:
-	var bubbles := CPUParticles2D.new()
-	bubbles.texture = load("res://assets/sprites/bubble.png")
-	bubbles.amount = 12
-	bubbles.lifetime = 0.8
-	bubbles.gravity = Vector2(0, -60)
-	bubbles.scale_amount_min = 0.3
-	bubbles.scale_amount_max = 0.6
-	bubbles.initial_velocity_max = 20.0
-	_animal.add_child(bubbles)
-	var tween := create_tween().set_parallel(true)
-	tween.tween_property(_animal, "position", Vector2(520, -260), 1.4).set_ease(Tween.EASE_IN)
-	tween.tween_property(_animal, "modulate:a", 0.0, 1.4)

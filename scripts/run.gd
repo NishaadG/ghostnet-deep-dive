@@ -1,17 +1,37 @@
 class_name Run
 extends Node2D
-# One dive. Builds the world, follows Nova with the camera, tracks stats, and reports
-# a result dictionary through `finished` once Pip has towed her back up.
+# One dive. Builds the world, follows Nova with the camera, tracks stats, handles net walls,
+# and reports a result dictionary through `finished` once Pip has towed her back up.
 
 signal finished(result: Dictionary)
 
-const TOW_DELAY := 1.4   # seconds between the run ending and handing over to the next screen
+const TOW_DELAY := 1.6   # seconds between the run ending and handing over to the next screen
+const DARKNESS_SHADER := """
+shader_type canvas_item;
+uniform vec2 pip_uv = vec2(0.5, 0.5);
+uniform float darkness = 0.0;
+uniform float radius = 0.36;
+void fragment() {
+	vec2 aspect = vec2(1.7778, 1.0);
+	float d = distance(UV * aspect, pip_uv * aspect);
+	float hole = smoothstep(radius * 0.35, radius, d);
+	float vignette = smoothstep(0.55, 1.15, distance(UV, vec2(0.5)) * 1.45) * 0.45;
+	COLOR = vec4(0.0, 0.005, 0.02, clamp(darkness * hole + vignette, 0.0, 0.97));
+}
+"""
 
 var stats: Dictionary
 var player: Player
 var terrain: Terrain
 var spawner: Spawner
+var site: LaunchSite
+var backdrop: Backdrop
+var pip: Pip
+var hud: Hud
 var camera: Camera2D
+var tint: CanvasModulate
+var whale: Whale
+var walls := {}                       # wall index -> NetWall, created when the terrain reaches it
 var max_depth_m := 0.0
 var top_speed := 0.0
 var end_reason := ""
@@ -19,18 +39,32 @@ var nets_cut := 0
 var animals_freed := 0
 var plastic := 0
 var wall_bonus := 0
+var wall_info := {}                   # filled when a wall stops the run: name, hp before/after, max
+var lumen_freed := false
 var ended := false
 var _tow_timer := 0.0
 var _shake := 0.0
-var _banner: Label
+var _zone := -1
+var _darkness: ColorRect
+var _bubbles: CPUParticles2D
 
 
 func _ready() -> void:
 	stats = Balance.stats_for(Game.levels)
+	var layer := CanvasLayer.new()                    # everything behind the world
+	layer.layer = -5
+	add_child(layer)
+	backdrop = Backdrop.new()
+	layer.add_child(backdrop)
+	tint = CanvasModulate.new()
+	add_child(tint)
 	terrain = Terrain.new()
 	terrain.setup(randi())
+	terrain.all_lit = Game.story_complete
+	site = LaunchSite.new()
+	site.ramp_level = stats["ramp_level"]
+	add_child(site)
 	add_child(terrain)
-	add_child(LaunchSite.new())
 	spawner = Spawner.new()
 	spawner.setup(terrain, stats, randi())
 	spawner.net_touched.connect(_on_net_touched)
@@ -40,26 +74,54 @@ func _ready() -> void:
 	add_child(player)
 	player.start(stats, terrain)
 	player.ended.connect(_on_player_ended)
-	player.hit_floor.connect(func(into_speed: float): _shake = maxf(_shake, clampf(into_speed / 40.0, 3.0, 14.0)))
-	player.hit_ceiling.connect(func(): _shake = maxf(_shake, 8.0))
+	player.launched.connect(func(): Audio.play("launch"))
+	player.splashed.connect(_on_splashed)
+	player.hit_floor.connect(func(into_speed: float):
+		_bump(clampf(into_speed / 40.0, 3.0, 14.0))
+		Audio.play("net_hit", -6.0, 0.7))
+	player.hit_ceiling.connect(func():
+		_bump(8.0)
+		Audio.play("net_hit", -6.0, 0.7))
+	pip = Pip.new()
+	pip.player = player
+	pip.spawner = spawner
+	pip.stats = stats
+	pip.position = player.position
+	add_child(pip)
+	_bubbles = Art.particles(26, 1.2, 5.0, 12.0, Color(Art.ICE, 0.45), false)
+	_bubbles.local_coords = false
+	_bubbles.gravity = Vector2(0, -90)
+	_bubbles.initial_velocity_max = 25.0
+	_bubbles.position = Vector2(-30, 0)
+	player.add_child(_bubbles)
 	camera = Camera2D.new()
 	camera.position = player.position
 	add_child(camera)
 	camera.make_current()
-	_build_hud()
+	_build_overlay()
 	terrain.update(camera.position.x)
 
 
 func _process(delta: float) -> void:
+	if get_tree().paused:
+		return
 	_follow_with_camera(delta)
+	var water := player.position.y > 0.0
+	_bubbles.emitting = water and player.state != Player.State.DONE
+	Audio.set_loop("boost_loop", player.thrusting)
 	if not ended:
 		spawner.update(player)
+		_spawn_walls()
+		_check_walls()
+		_zone_banner()
 		max_depth_m = maxf(max_depth_m, player.position.y / Balance.PX_PER_M)
 		top_speed = maxf(top_speed, player.vel.length())
+		Audio.low_oxygen_alarm(player.oxygen / stats["max_oxygen"] < 0.15 and water, delta)
 	else:
-		_tow_timer += delta
+		_tow_timer += delta / maxf(Engine.time_scale, 0.05)
 		if _tow_timer >= TOW_DELAY:
 			set_process(false)
+			Audio.set_loop("boost_loop", false)
 			finished.emit(make_result())
 
 
@@ -70,13 +132,98 @@ func _follow_with_camera(delta: float) -> void:
 	var zoom_target := lerpf(1.0, 0.7, clampf(player.vel.length() / 1100.0, 0.0, 1.0))
 	camera.zoom = camera.zoom.lerp(Vector2(zoom_target, zoom_target), 1.0 - exp(-2.0 * delta))
 	_shake = maxf(0.0, _shake - 40.0 * delta)
-	camera.offset = Vector2(randf_range(-1, 1), randf_range(-1, 1)) * _shake
+	var shake_amount := _shake if Game.settings["shake"] else 0.0
+	camera.offset = Vector2(randf_range(-1, 1), randf_range(-1, 1)) * shake_amount
 	terrain.view_half = 640.0 / camera.zoom.x + 300.0
-	terrain.update(camera.position.x)
-	# The deeper Nova goes, the darker the water.
-	var depth := clampf(player.position.y / 30000.0, 0.0, 1.0)
-	RenderingServer.set_default_clear_color(Color(0.08, 0.35, 0.45).lerp(Color(0.01, 0.02, 0.05), sqrt(depth)))
+	terrain.update(camera.position.x, delta)
+	site.follow(camera.position, delta)
+	backdrop.follow(camera.position, camera.zoom.x, terrain.floor_y(camera.position.x), delta)
+	var palette := Art.zone_palette(player.position.x)
+	tint.color = palette["tint"]
+	_update_darkness(palette["dark"])
 
+
+func _update_darkness(amount: float) -> void:
+	var screen_pos := get_viewport().get_canvas_transform() * pip.global_position
+	var shader_material := _darkness.material as ShaderMaterial
+	shader_material.set_shader_parameter("pip_uv", screen_pos / Vector2(1280, 720))
+	shader_material.set_shader_parameter("darkness", amount)
+
+
+# ---- Net walls ----
+
+func _spawn_walls() -> void:
+	if Game.endless_mode:
+		return
+	for i in Balance.WALLS.size():
+		if walls.has(i):
+			continue
+		var x: float = Balance.WALLS[i]["at_m"] * Balance.PX_PER_M
+		if x > terrain.points[terrain.points.size() - 1].x - 300.0:
+			continue
+		var wall := NetWall.new()
+		wall.position = Vector2(x, 0)
+		wall.setup(i, maxf(terrain.ceiling_y(x), 0.0), terrain.floor_y(x), Game.wall_broken(i))
+		add_child(wall)
+		walls[i] = wall
+		if i == Balance.WALLS.size() - 1:
+			_add_whale(x, wall)
+
+
+func _add_whale(wall_x: float, wall: NetWall) -> void:
+	whale = Whale.new()
+	whale.position = Vector2(wall_x + 760.0, (wall.y_top + wall.y_bottom) / 2.0)
+	whale.z_index = -1
+	whale.lit = 1.0 if wall.torn else 0.0
+	add_child(whale)
+
+
+func _check_walls() -> void:
+	for i in walls:
+		var wall: NetWall = walls[i]
+		if wall.torn:
+			continue
+		if absf(player.position.x - wall.position.x) < NetWall.HALF_WIDTH + Balance.PLAYER_RADIUS \
+				and player.position.y > wall.y_top - 60.0 and player.position.y < wall.y_bottom + 60.0:
+			_hit_wall(i, wall)
+			return
+
+
+# damage = speed * ballast * cutter. A wall that survives keeps its damage for next time.
+func _hit_wall(index: int, wall: NetWall) -> void:
+	var before := wall.hp
+	wall.hit(player.vel.length() * stats["ballast_mult"] * stats["cutter_mult"])
+	Game.wall_hp[str(index)] = wall.hp
+	Game.save_game()
+	_bump(16.0)
+	if wall.torn:
+		Audio.play("wall_break")
+		wall_bonus += int(Balance.WALLS[index]["bonus"])
+		player.vel *= Balance.WALL_SPEED_KEEP
+		hud.show_caption("%s torn open!  +%d tags" % [Balance.WALLS[index]["name"], Balance.WALLS[index]["bonus"]], 3.0)
+		if index == Balance.WALLS.size() - 1:
+			_free_the_lumen()
+	else:
+		Audio.play("wall_hit")
+		wall_info = {"name": Balance.WALLS[index]["name"], "before": before, "after": wall.hp, "max": wall.hp_max}
+		player.finish("wall")
+
+
+# Slow motion, the whale lights up, her song plays, then the run ends into the ending cards.
+func _free_the_lumen() -> void:
+	lumen_freed = true
+	Game.story_complete = true
+	Game.save_game()
+	terrain.all_lit = true
+	Audio.play("whale_song")
+	Engine.time_scale = 0.3
+	get_tree().create_timer(1.0, true, false, true).timeout.connect(func(): Engine.time_scale = 1.0)
+	if whale:
+		create_tween().tween_property(whale, "lit", 1.0, 2.5)
+	get_tree().create_timer(3.5, true, false, true).timeout.connect(func(): player.finish("lumen"))
+
+
+# ---- Results ----
 
 func make_result() -> Dictionary:
 	var distance_m := maxf(0.0, player.position.x / Balance.PX_PER_M)
@@ -89,6 +236,8 @@ func make_result() -> Dictionary:
 		"animals_freed": animals_freed,
 		"plastic": plastic,
 		"wall_bonus": wall_bonus,
+		"wall_info": wall_info,
+		"lumen_freed": lumen_freed,
 		"fleet_cut": spawner.loose_nets_up_to(player.position.x),
 		"tags": tags_so_far(),
 	}
@@ -103,11 +252,13 @@ func _on_net_touched(net: Net) -> void:
 	net.cut_open()
 	nets_cut += 1
 	player.vel *= stats["net_slow"]
+	Audio.play("cut")
 	if net.has_animal:
 		animals_freed += 1
 		player.add_oxygen(Balance.OXYGEN_FROM_ANIMAL)
 		player.vel += player.vel.normalized() * Balance.ANIMAL_BURST      # thank-you speed burst
-	_shake = maxf(_shake, 6.0)
+		Audio.play("pickup", -2.0, 1.3)
+	_bump(6.0)
 	_hit_stop(0.05)
 
 
@@ -116,39 +267,82 @@ func _on_pickup_touched(pickup: Pickup) -> void:
 	match pickup.kind:
 		"o2":
 			player.add_oxygen(Balance.OXYGEN_FROM_CANISTER)
+			Audio.play("o2")
 		"fuel":
 			player.add_fuel(Balance.FUEL_FROM_CELL)
+			Audio.play("fuel")
 		_:
 			plastic += 1
+			Audio.play("pickup", -10.0, 1.0 + 0.04 * (plastic % 8))
+
+
+func _on_splashed(pos: Vector2, loss: float) -> void:
+	Audio.play("splash", 0.0, 1.0 - loss)
+	var burst := Art.particles(40, 0.9, 6.0, 16.0, Color(Art.ICE, 0.8), true)
+	burst.one_shot = true
+	burst.explosiveness = 0.95
+	burst.spread = 70.0
+	burst.direction = Vector2.UP
+	burst.initial_velocity_min = 120.0
+	burst.initial_velocity_max = 380.0
+	burst.gravity = Vector2(0, 700)
+	burst.position = Vector2(pos.x, 0)
+	add_child(burst)
+	burst.emitting = true
+	get_tree().create_timer(1.5).timeout.connect(burst.queue_free)
+	_bump(clampf(loss * 20.0, 2.0, 8.0))
+
+
+func _bump(amount: float) -> void:
+	_shake = maxf(_shake, amount)
 
 
 # A tiny freeze on impact makes cutting a net feel crunchy. The timer ignores time_scale.
 func _hit_stop(seconds: float) -> void:
+	if Engine.time_scale < 1.0:
+		return
 	Engine.time_scale = 0.05
 	get_tree().create_timer(seconds, true, false, true).timeout.connect(func(): Engine.time_scale = 1.0)
+
+
+func _zone_banner() -> void:
+	var zone := Balance.zone_index_at(player.position.x)
+	if zone != _zone:
+		_zone = zone
+		if player.position.x > 600.0:
+			hud.show_banner(Balance.ZONES[zone]["name"], "%d m" % Balance.ZONES[zone]["start_m"])
 
 
 func _on_player_ended(reason: String) -> void:
 	ended = true
 	end_reason = reason
-	var text: String = {
-		"oxygen": "Out of oxygen",
-		"crash": "Hit the seabed too hard",
-		"rest": "Came to rest on the seabed",
-	}.get(reason, reason)
-	_banner.text = "%s. Pip is towing you up..." % text
-	_banner.visible = true
+	Audio.play("run_end")
+	Audio.set_loop("boost_loop", false)
+	hud.show_towing(reason)
 
 
-func _build_hud() -> void:
-	var layer := CanvasLayer.new()
-	add_child(layer)
-	var hud := Hud.new()
+# ---- Screen-space layers: darkness overlay and HUD ----
+
+func _build_overlay() -> void:
+	var dark_layer := CanvasLayer.new()
+	dark_layer.layer = 5
+	add_child(dark_layer)
+	_darkness = ColorRect.new()
+	_darkness.size = Vector2(1280, 720)
+	_darkness.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var shader := Shader.new()
+	shader.code = DARKNESS_SHADER
+	var shader_material := ShaderMaterial.new()
+	shader_material.shader = shader
+	_darkness.material = shader_material
+	dark_layer.add_child(_darkness)
+	var hud_layer := CanvasLayer.new()
+	hud_layer.layer = 10
+	add_child(hud_layer)
+	hud = Hud.new()
 	hud.run = self
-	layer.add_child(hud)
-	_banner = Label.new()
-	_banner.position = Vector2(340, 330)
-	_banner.add_theme_font_override("font", Game.font_bold)
-	_banner.add_theme_font_size_override("font_size", 30)
-	_banner.visible = false
-	layer.add_child(_banner)
+	hud_layer.add_child(hud)
+	if Game.settings["touch"] or DisplayServer.is_touchscreen_available():
+		hud_layer.add_child(TouchControls.new())
+	if Game.dives < 3:
+		hud.show_caption("D / Right: nose down, dive for speed.   A / Left: nose up, glide.   Space: boost", 7.0)

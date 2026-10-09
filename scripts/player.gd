@@ -3,6 +3,7 @@ extends Node2D
 # Nova's body and flight model. Plain arcade physics, no physics engine:
 # we move the position ourselves and test it against the terrain height lookup.
 
+signal launched
 signal splashed(pos: Vector2, loss: float)
 signal hit_floor(into_speed: float)
 signal hit_ceiling
@@ -24,7 +25,9 @@ var scripted := false
 var tilt_input := 0.0          # -1 nose up, +1 nose down
 var thrust_input := false
 
+var rig: DiverRig
 var _ramp_t := 0.0
+var _ramp_start := Vector2.ZERO
 var _rest_timer := 0.0
 var _ceiling_cooldown := 0.0
 var _floor_hit_cooldown := 0.0
@@ -35,9 +38,13 @@ func start(new_stats: Dictionary, new_terrain: Terrain) -> void:
 	terrain = new_terrain
 	oxygen = stats["max_oxygen"]
 	fuel = stats["max_fuel"]
-	position = Balance.RAMP_START
-	angle = (Balance.RAMP_END - Balance.RAMP_START).angle()
+	_ramp_start = Balance.ramp_start(stats["ramp_level"])
+	position = _ramp_start
+	angle = (Balance.RAMP_END - _ramp_start).angle()
 	rotation = angle
+	rig = DiverRig.new()
+	rig.tiers = {"craft": stats["craft_tier"], "booster": stats["booster_tier"], "cutter": stats["cutter_tier"]}
+	add_child(rig)
 
 
 func _physics_process(delta: float) -> void:
@@ -56,20 +63,22 @@ func _physics_process(delta: float) -> void:
 		State.WATER:
 			_swim(delta)
 	rotation = angle
-	queue_redraw()
+	rig.thrust = 1.0 if thrusting else 0.0
+	rig.speed = vel.length()
 
 
 # Constant acceleration down the ramp: speed grows with the square root of progress.
 func _slide_down_ramp(delta: float) -> void:
-	var length := Balance.RAMP_START.distance_to(Balance.RAMP_END)
+	var length := _ramp_start.distance_to(Balance.RAMP_END)
 	var speed: float = stats["launch_speed"] * maxf(0.25, sqrt(_ramp_t))
 	_ramp_t += speed * delta / length
 	if _ramp_t < 1.0:
-		position = Balance.RAMP_START.lerp(Balance.RAMP_END, _ramp_t)
+		position = _ramp_start.lerp(Balance.RAMP_END, _ramp_t)
 		return
 	position = Balance.RAMP_END
 	vel = Vector2.RIGHT.rotated(angle) * stats["launch_speed"]
 	state = State.AIR
+	launched.emit()
 
 
 # In the air the player can only tilt: a steep nose-down entry keeps speed.
@@ -171,11 +180,3 @@ func finish(reason: String) -> void:
 	state = State.DONE
 	thrusting = false
 	ended.emit(reason)
-
-
-# Grey-box body, replaced by the sprite rig in milestone 5.
-func _draw() -> void:
-	draw_rect(Rect2(-34, -13, 68, 26), Color(0.95, 0.6, 0.2))
-	draw_colored_polygon(PackedVector2Array([Vector2(34, -13), Vector2(52, 0), Vector2(34, 13)]), Color.WHITE)
-	if thrusting:
-		draw_colored_polygon(PackedVector2Array([Vector2(-34, -8), Vector2(-70, 0), Vector2(-34, 8)]), Color(1, 0.9, 0.3))
