@@ -36,6 +36,15 @@ const CEILING_COOLDOWN := 0.5
 const BASE_OXYGEN := 18.0
 const BASE_FUEL := 1.5
 
+# ---- Things in the water ----
+const OXYGEN_FROM_CANISTER := 8.0
+const OXYGEN_FROM_ANIMAL := 6.0
+const FUEL_FROM_CELL := 0.4          # fraction of the tank
+const ANIMAL_BURST := 150.0          # px/s added when an animal swims free
+const NET_ANIMAL_CHANCE := 0.2       # 1 net in 5 holds an animal
+const NET_RATE := {"reef": 0.9, "city": 1.4, "slope": 1.1, "trench": 0.9}   # loose nets per 600 px slice
+const WALL_DISTANCES_M := [400, 1500, 2800, 3600]
+
 # ---- Terrain ----
 const START_FLOOR := 420.0
 const TERRAIN_AHEAD := 4000.0
@@ -86,6 +95,15 @@ func corridor_at(x_px: float) -> float:
 		if x_px > next_x - 400.0:
 			return lerpf(here, ZONES[i + 1]["corridor"], (x_px - (next_x - 400.0)) / 400.0)
 	return here
+
+
+func zone_id_at(x_px: float) -> String:
+	return ZONES[zone_index_at(x_px)]["id"]
+
+
+# Tags earned by a dive. Same formula the results screen shows line by line.
+func tags_for(distance_m: float, depth_m: float, nets_cut: int, animals_freed: int, wall_bonus: int) -> int:
+	return int(distance_m / 10.0) + int(depth_m / 10.0) + nets_cut + 3 * animals_freed + wall_bonus
 
 
 func upgrade_max(id: String) -> int:

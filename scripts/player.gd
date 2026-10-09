@@ -157,6 +157,14 @@ func _collide_with_terrain(delta: float) -> void:
 		_rest_timer = 0.0
 
 
+func add_oxygen(seconds: float) -> void:
+	oxygen = minf(oxygen + seconds, stats["max_oxygen"])
+
+
+func add_fuel(fraction_of_tank: float) -> void:
+	fuel = minf(fuel + fraction_of_tank * stats["max_fuel"], stats["max_fuel"])
+
+
 func finish(reason: String) -> void:
 	if state == State.DONE:
 		return
