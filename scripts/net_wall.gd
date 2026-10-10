@@ -11,6 +11,7 @@ var hp_max := 0.0
 var torn := false
 var y_top := 0.0
 var y_bottom := 0.0
+var show_bar := true          # cutscenes hide the HP bar
 var _age := 0.0
 var _flash := 0.0
 
@@ -70,7 +71,7 @@ func _draw() -> void:
 		Art.glow(self, Vector2(-HALF_WIDTH, fy), 16.0, Color(Art.AMBER, 0.4))
 		draw_circle(Vector2(-HALF_WIDTH, fy), 5.0, Art.AMBER)
 		draw_circle(Vector2(HALF_WIDTH, fy + 45.0), 5.0, Art.AMBER)
-	if not torn:
+	if not torn and show_bar:
 		_hp_bar(mid)
 
 

@@ -1,7 +1,8 @@
 extends Node
 # Screen switcher. Only one screen (a Node) is alive at a time.
-# Flow: Title -> Save slots -> (intro cards) -> Workshop -> Run -> Results -> Workshop,
-# with the ending cards between Run and Results when the Lumen is freed.
+# Flow: Title -> Save slots -> (intro cutscene) -> Workshop -> Run -> Results -> Workshop.
+# Cutscenes (see Story): the intro on a new game; a wall's meeting scene pauses the dive the
+# first time it comes into view; scenes for torn walls and the ending play between Run and Results.
 
 var _screen: Node
 var _overlay: Node          # settings or pause menu on top of the current screen
@@ -53,6 +54,7 @@ func show_title() -> void:
 	title.play_pressed.connect(show_slots)
 	title.continue_pressed.connect(func(slot: int): _begin(slot, false))
 	title.settings_pressed.connect(_open_settings)
+	title.story_pressed.connect(show_gallery)
 	title.quit_pressed.connect(func(): get_tree().quit())
 	_show(title)
 
@@ -73,16 +75,34 @@ func _begin(slot: int, is_new: bool) -> void:
 	Game.settings["last_slot"] = slot
 	Game.save_settings()
 	if is_new:
-		show_cards(StoryCards.INTRO, show_workshop)
+		show_scene("intro", show_workshop)
 	else:
 		show_workshop()
 
 
-func show_cards(lines: Array, then: Callable) -> void:
-	var cards := StoryCards.new()
-	cards.setup(lines)
-	cards.finished.connect(then)
-	_show(cards)
+# A cutscene as a full screen. It counts as seen as soon as it starts.
+func show_scene(id: String, then: Callable) -> void:
+	Game.mark_scene_seen(id)
+	var cutscene := Cutscene.new()
+	cutscene.setup(id)
+	cutscene.finished.connect(then)
+	_show(cutscene)
+
+
+# Several scenes one after another, then `then`.
+func _play_scenes(ids: Array, then: Callable) -> void:
+	if ids.is_empty():
+		then.call()
+	else:
+		show_scene(String(ids[0]), func(): _play_scenes(ids.slice(1), then))
+
+
+func show_gallery() -> void:
+	Audio.play_music("music_menu")
+	var gallery := StoryGallery.new()
+	gallery.scene_chosen.connect(func(id: String): show_scene(id, show_gallery))
+	gallery.back_pressed.connect(show_title)
+	_show(gallery)
 
 
 func show_workshop() -> void:
@@ -94,20 +114,45 @@ func show_workshop() -> void:
 
 
 func start_run() -> void:
+	if Game.level("net_return") >= 1 and not Game.scene_seen("net_return"):
+		show_scene("net_return", start_run)     # the first net brought home, before the next dive
+		return
 	Audio.play_music("music_dive")
 	var run := Run.new()
 	run.process_mode = Node.PROCESS_MODE_PAUSABLE
 	run.finished.connect(_on_run_finished)
+	run.story_moment.connect(_play_in_dive)
 	_show(run)
+
+
+# A wall's meeting scene inside the dive: pause, play it on top, then carry on at the same speed.
+func _play_in_dive(id: String) -> void:
+	if _overlay != null:
+		return
+	Game.mark_scene_seen(id)
+	get_tree().paused = true
+	Engine.time_scale = 1.0
+	Audio.set_loop("boost_loop", false)
+	var layer := CanvasLayer.new()
+	layer.layer = 50                            # above the dive's darkness and HUD layers
+	layer.process_mode = Node.PROCESS_MODE_ALWAYS
+	var cutscene := Cutscene.new()
+	cutscene.setup(id)
+	cutscene.finished.connect(_resume)
+	layer.add_child(cutscene)
+	_overlay = layer
+	add_child(layer)
 
 
 func _on_run_finished(result: Dictionary) -> void:
 	Engine.time_scale = 1.0
 	Game.bank_run(result)
-	if result["lumen_freed"]:
-		show_cards(StoryCards.ENDING, func(): show_results(result))
-	else:
-		show_results(result)
+	var scenes := []
+	for index in result.get("walls_torn", []):
+		var id: String = "ending" if index == Balance.WALLS.size() - 1 else "wall%d_torn" % index
+		if not Game.scene_seen(id):
+			scenes.append(id)
+	_play_scenes(scenes, func(): show_results(result))
 
 
 func show_results(result: Dictionary) -> void:
@@ -171,6 +216,7 @@ func _unhandled_key_input(event: InputEvent) -> void:
 		KEY_F2: Game.debug_add_tags()
 		KEY_F3: Game.debug_mid_save()
 		KEY_F4: Game.debug_unlock_endless()
+		KEY_F5: Game.debug_unlock_scenes()
 		_: return
 	if _screen is Workshop:
 		show_workshop()              # rebuild so the new numbers show up

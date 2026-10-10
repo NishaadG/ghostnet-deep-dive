@@ -17,11 +17,19 @@ tunable number lives in one file: `autoload/balance.gd`.
 - `terrain.gd`: generates the staircase floor, answers `floor_y(x)` / `ceiling_y(x)`, draws rock and scenery. `decor_art.gd` draws corals, towers, crystals.
 - `spawner.gd`: places nets, pickups and plastic ahead of Nova, and reports touches. `net.gd`, `pickup.gd`, `animal.gd`, `net_wall.gd`, `whale.gd`, `pip.gd`.
 - `backdrop.gd`, `launch_site.gd`: the water gradient with parallax ridges and the sky, boat and ramp.
-- `main.gd`: the screen switcher (Title, Slots, Workshop, Run, Results, Cards).
+- `main.gd`: the screen switcher (Title, Slots, Workshop, Run, Results, cutscenes, Story gallery).
 
-**Screens** (`ui/`): `title.gd`, `slot_select.gd`, `workshop.gd` (+ `shop_rows.gd`), `results.gd`, `story_cards.gd`, `settings_panel.gd`, `pause_menu.gd`, `hud.gd`, shared look in `ui_kit.gd`.
+**The story** (`scripts/story.gd`, `ui/cutscene.gd`, `scripts/cutscene_stage.gd`, `scripts/figure.gd`)
+- `story.gd`: every cutscene and radio line, written as plain data (a list of "beats" per scene). Edit the story here without touching code.
+- `cutscene.gd`: plays one scene: yellow comic captions for narration, a speech box with the speaker's name, text that types out, SKIP.
+- `cutscene_stage.gd`: the picture. A "set" is one place (Port Halo's dock, the reef, each net wall, the Abyss); "actions" are small animations
+  (Nova swims in, a net is cut, the reef goes dark, the Lumen is freed). It reuses the dive's own art (DiverRig, Pip, Net, NetWall, Whale, LaunchSite).
+- `figure.gd`: the standing characters on the dock: Captain Vale, Ilo the deckhand, the harbourmaster, Nova in her suit.
 
-**Tests** (`tests/`): `smoke.gd` (a bot flies a run), `progression.gd` (upgrades, saves, screens), `economy.gd` (balance simulation).
+**Screens** (`ui/`): `title.gd`, `slot_select.gd`, `workshop.gd` (+ `shop_rows.gd`), `results.gd`, `cutscene.gd`, `story_gallery.gd`, `settings_panel.gd`, `pause_menu.gd`, `hud.gd`, shared look in `ui_kit.gd`.
+
+**Tests** (`tests/`): `smoke.gd` (a bot flies a run), `progression.gd` (upgrades, saves, screens), `economy.gd` (balance simulation),
+`cutscenes.gd` (every scene plays to the end, every set/action/speaker exists), `story_flow.gd` (scenes pause and resume the dive, play before results).
 
 ## 2. How a run flows
 
@@ -32,7 +40,10 @@ tunable number lives in one file: `autoload/balance.gd`.
 5. **Water**: `_swim` runs every physics frame (see section 3). `_collide_with_terrain` ends the run on a hard crash, scrapes speed on a shallow skim.
 6. Every frame `Run._process` moves the camera, `Spawner.update` fills the water ahead, `_check_walls` tests the net walls.
 7. A run ends when oxygen reaches zero, on a hard crash, when Nova comes to rest, or when a wall stops her. `Run.finished` carries a result dictionary.
-8. `main._on_run_finished` banks it (`Game.bank_run`, which also saves), shows the **Results** screen (numbers count up into tags, then the fleet line) and returns to the workshop.
+7b. **Story**: the first time a net wall comes within 65 m, `Run` emits `story_moment`; `main` pauses the tree, plays that wall's
+   meeting scene on a CanvasLayer above the dive, then unpauses. Nova keeps her speed, so the hit on the wall still counts.
+   Radio lines (`Hud.show_radio`) never pause: Pip at the start of a dive and in each new zone, Captain Vale every third dive.
+8. `main._on_run_finished` banks it (`Game.bank_run`, which also saves), plays the scene for any wall torn on that dive (the ending if it was the Lumen's Net), shows the **Results** screen (numbers count up into tags, then the fleet line) and returns to the workshop.
 
 ## 3. The physics model in plain words
 

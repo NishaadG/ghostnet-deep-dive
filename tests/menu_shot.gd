@@ -28,10 +28,25 @@ func _ready() -> void:
 					"wall_info": {"name": "Reef Gate", "before": 1100.0, "after": 640.0, "max": 1400.0},
 					"style": {"total": 742, "rank": "A", "best_chain": 4, "tags": 4, "lines": [["Airtime", 1, 130], ["Flips", 1, 150], ["Perfect splash", 1, 100], ["Grinds", 2, 160], ["Canyon clears", 1, 142], ["Net chain", 3, 60]]}}
 			screen = r
-		"cards":
-			var c := StoryCards.new()
-			c.setup(StoryCards.INTRO)
+		"cutscene":                          # -- screen=cutscene scene=intro beat=3
+			var c := Cutscene.new()
+			var id := "intro"
+			var beat := 0
+			for arg in OS.get_cmdline_user_args():
+				if arg.begins_with("scene="):
+					id = arg.substr(6)
+				if arg.begins_with("beat="):
+					beat = int(arg.substr(5))
+			c.setup(id)
 			screen = c
+			add_child(screen)
+			for i in beat:
+				c._typed = 9999.0
+				c._auto_wait = -1.0
+				c._next()
+			return
+		"gallery":
+			screen = StoryGallery.new()
 		"credits":
 			var t := Title.new()
 			add_child(t)

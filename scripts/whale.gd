@@ -2,11 +2,17 @@ class_name Whale
 extends Node2D
 # The Lumen, a giant whale facing left (toward Nova), pinned behind the last net wall.
 # `lit` goes 0 -> 1 when she is freed: she brightens and her bioluminescence switches on.
+# `wrapped` goes 1 -> 0 at the same time: the ghost nets wrapped around her body fall away.
 
 const LENGTH := 1200.0
 const HEIGHT := 440.0
 
 var lit := 0.0
+var wrapped := 0.0
+
+# Net patches over her body: centre and radii in px. Together they stand for the 41 nets.
+const NET_PATCHES := [[Vector2(-380, -10), Vector2(170, 130)], [Vector2(-120, -30), Vector2(190, 150)],
+		[Vector2(140, 0), Vector2(170, 120)], [Vector2(360, 10), Vector2(130, 90)], [Vector2(-240, 120), Vector2(140, 80)]]
 var _age := 0.0
 
 
@@ -51,3 +57,27 @@ func _draw() -> void:
 		var twinkle := 0.5 + 0.5 * sin(_age * 2.0 + i)
 		Art.glow(self, spot, 18.0 + 14.0 * twinkle, Color(Art.CYAN, (0.15 + 0.6 * twinkle) * lit))
 		draw_circle(spot, 3.0, Color(Art.ICE, (0.15 + 0.85 * lit)))
+	if wrapped > 0.0:
+		_nets()
+
+
+# Mesh drawn inside each ellipse: two families of slanted strands, plus amber floats on top.
+func _nets() -> void:
+	var mesh := Color(Art.NET_COLOR, 0.75 * wrapped)
+	for i in NET_PATCHES.size():
+		var centre: Vector2 = NET_PATCHES[i][0] + Vector2(0, sin(_age * 0.9 + i) * 6.0)
+		var radii: Vector2 = NET_PATCHES[i][1]
+		for direction in [Vector2(1, 1).normalized(), Vector2(1, -1).normalized()]:
+			var across: Vector2 = direction.orthogonal()
+			var d := -0.92
+			while d < 0.95:
+				var half := sqrt(1.0 - d * d)          # half-length of this strand inside a unit circle
+				var a: Vector2 = (across * d - direction * half) * radii + centre
+				var b: Vector2 = (across * d + direction * half) * radii + centre
+				draw_line(a, b, mesh, 1.6, true)
+				d += 0.16
+		for k in 5:
+			var angle := PI * 1.15 + k * 0.32
+			var float_pos := centre + Vector2(cos(angle), sin(angle)) * radii
+			Art.glow(self, float_pos, 14.0, Color(Art.AMBER, 0.45 * wrapped))
+			draw_circle(float_pos, 5.0, Color(Art.AMBER, wrapped))

@@ -40,6 +40,7 @@ Tip: dive in off the ramp with the nose down (a steep entry keeps all your speed
 | `F2` | +500 tags |
 | `F3` | jump to a mid-game save (Net Return 4, mid-tier gear) |
 | `F4` | unlock Endless mode |
+| `F5` | unlock every cutscene in the title's STORY screen (to show the whole story quickly) |
 
 ## Opening and exporting
 
@@ -47,7 +48,8 @@ Tip: dive in off the ramp with the nose down (a steep entry keeps all your speed
 2. Web export: `Project > Export > Web > Export Project` (the preset has thread support **off**), output `build/web/index.html`.
    Command line: `godot --headless --path . --export-release Web build/web/index.html`.
    Serve the folder with any static web server and open it in a browser (the Web export cannot run from `file://`).
-3. Tests (headless): `godot --headless --path . res://tests/smoke.tscn`, `res://tests/progression.tscn`, `res://tests/economy.tscn`.
+3. Tests (headless): `godot --headless --path . res://tests/smoke.tscn`, `res://tests/progression.tscn`, `res://tests/economy.tscn`,
+   `res://tests/cutscenes.tscn` (every scene plays through), `res://tests/story_flow.tscn` (scenes are wired into the dive).
 
 ## Comic to game
 
