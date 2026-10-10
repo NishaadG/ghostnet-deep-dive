@@ -11,6 +11,8 @@ var best_distance := 0.0
 var dives := 0
 var animals_freed_total := 0
 var nets_cut_total := 0
+var best_style := 0          # highest style score in one dive
+var best_rank := ""          # best rank earned (D to S)
 var wall_hp := {}              # wall index (as text) -> remaining HP; missing = untouched
 var story_complete := false    # true after the Lumen is freed; unlocks Endless mode
 var endless_mode := false
@@ -105,7 +107,17 @@ func bank_run(result: Dictionary) -> void:
 	animals_freed_total += int(result["animals_freed"])
 	nets_cut_total += int(result["nets_cut"])
 	best_distance = maxf(best_distance, float(result["distance_m"]))
+	var style: Dictionary = result.get("style", {})
+	if not style.is_empty():
+		best_style = maxi(best_style, int(style["total"]))
+		best_rank = _better_rank(best_rank, String(style["rank"]))
 	save_game()
+
+
+# Ranks run S (best) to D; an empty string means none yet.
+func _better_rank(current: String, candidate: String) -> String:
+	var order := ["", "D", "C", "B", "A", "S"]
+	return candidate if order.find(candidate) > order.find(current) else current
 
 
 # ---- Save slots ----
@@ -148,6 +160,7 @@ func save_game() -> void:
 	var data := {
 		"tags": tags, "levels": levels, "wall_hp": wall_hp, "best_distance": best_distance,
 		"dives": dives, "animals_freed": animals_freed_total, "nets_cut": nets_cut_total,
+		"best_style": best_style, "best_rank": best_rank,
 		"story_complete": story_complete, "endless_mode": endless_mode, "seen_scenes": seen_scenes,
 		"saved_at": Time.get_datetime_string_from_system(),
 	}
@@ -164,6 +177,8 @@ func _clear_progress() -> void:
 	dives = 0
 	animals_freed_total = 0
 	nets_cut_total = 0
+	best_style = 0
+	best_rank = ""
 	story_complete = false
 	endless_mode = false
 	seen_scenes = []
@@ -175,6 +190,8 @@ func _apply(data: Dictionary) -> void:
 	dives = int(data.get("dives", 0))
 	animals_freed_total = int(data.get("animals_freed", 0))
 	nets_cut_total = int(data.get("nets_cut", 0))
+	best_style = int(data.get("best_style", 0))
+	best_rank = String(data.get("best_rank", ""))
 	story_complete = bool(data.get("story_complete", false))
 	endless_mode = bool(data.get("endless_mode", false)) and story_complete
 	seen_scenes = []

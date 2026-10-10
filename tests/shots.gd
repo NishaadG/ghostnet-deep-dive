@@ -19,6 +19,7 @@ func _ready() -> void:
 	add_child(run)
 	run.player.scripted = true
 	bot.spawner = run.spawner
+	bot.flip_in_air = "flip" in OS.get_cmdline_user_args()
 	if start_x > 0.0:
 		run.terrain.update(start_x)
 		run.player.position = Vector2(start_x, run.terrain.floor_y(start_x) - 300.0)

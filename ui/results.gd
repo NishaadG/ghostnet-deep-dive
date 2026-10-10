@@ -14,6 +14,7 @@ var _total_label: Label
 var _fleet_label: Label
 var _hint: Label
 var _wall_layer: Control
+var _style_layer: Control
 
 
 func _ready() -> void:
@@ -28,18 +29,21 @@ func _ready() -> void:
 	add_child(_label(_reason_text(), Vector2(230, 134), 18, false, Color(Art.ICE, 0.75)))
 
 	var r := result
-	_add_row("Distance", "%d m", r["distance_m"], int(r["distance_m"] / Balance.TAG_METRES), "1 tag per 40 m")
-	_add_row("Max depth", "%d m", r["max_depth_m"], int(r["max_depth_m"] / Balance.TAG_METRES), "1 tag per 40 m")
+	_add_row("Distance", "%d m", r["distance_m"], int(r["distance_m"] / Balance.TAG_METRES), "")
+	_add_row("Max depth", "%d m", r["max_depth_m"], int(r["max_depth_m"] / Balance.TAG_METRES), "")
 	_add_row("Top speed", "%d px/s", r["top_speed"], -1, "")
-	_add_row("Nets cut", "%d", r["nets_cut"], int(r["nets_cut"]), "1 tag each")
-	_add_row("Animals freed", "%d", r["animals_freed"], 3 * int(r["animals_freed"]), "3 tags each")
+	_add_row("Nets cut", "%d", r["nets_cut"], int(r["nets_cut"]), "")
+	_add_row("Animals freed", "%d", r["animals_freed"], 3 * int(r["animals_freed"]), "")
 	if int(r["wall_bonus"]) > 0:
-		_add_row("Net wall torn", "%d", 1, int(r["wall_bonus"]), "bonus")
+		_add_row("Net wall torn", "%d", 1, int(r["wall_bonus"]), "")
+	var style: Dictionary = r.get("style", {})
+	if not style.is_empty():
+		_add_row("Style", "%d pts", style["total"], int(style["tags"]), "")
 
-	_total_label = _label("", Vector2(230, 470), 36, true, Art.AMBER)
+	_total_label = _label("", Vector2(230, 484), 34, true, Art.AMBER)
 	add_child(_total_label)
 	_fleet_label = _label("You cut %d nets. The fleet cut loose %d while you were down." % [r["nets_cut"], r["fleet_cut"]],
-			Vector2(230, 530), 26, true, Color("ff8a8a"))
+			Vector2(230, 540), 25, true, Color("ff8a8a"))
 	_fleet_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_fleet_label.size = Vector2(820, 80)
 	_fleet_label.modulate.a = 0.0
@@ -47,6 +51,12 @@ func _ready() -> void:
 	_hint = _label("Press Enter or tap to continue", Vector2(230, 628), 18, false, Art.CYAN)
 	_hint.modulate.a = 0.0
 	add_child(_hint)
+	_style_layer = Control.new()
+	_style_layer.size = size
+	_style_layer.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_style_layer.draw.connect(_draw_style_panel)
+	_style_layer.modulate.a = 0.0
+	add_child(_style_layer)
 	_wall_layer = Control.new()
 	_wall_layer.size = size
 	_wall_layer.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -67,11 +77,11 @@ func _reason_text() -> String:
 
 
 func _add_row(title: String, format: String, value: float, tag_value: int, note: String) -> void:
-	var y := 176.0 + _rows.size() * 48.0
-	var name_label := _label(title, Vector2(230, y), 24, false)
-	var value_label := _label("", Vector2(520, y), 24, true)
+	var y := 176.0 + _rows.size() * 42.0
+	var name_label := _label(title, Vector2(230, y), 23, false)
+	var value_label := _label("", Vector2(440, y), 23, true)
 	var note_label := _label(note, Vector2(700, y + 6), 14, false, Color(Art.ICE, 0.5))
-	var tag_label := _label("", Vector2(930, y), 24, true, Art.AMBER)
+	var tag_label := _label("", Vector2(610, y), 23, true, Art.AMBER)
 	for l in [name_label, value_label, note_label, tag_label]:
 		l.modulate.a = 0.0
 		add_child(l)
@@ -96,6 +106,7 @@ func _reveal() -> void:
 	await _pause(0.3)
 	_fleet_label.modulate.a = 1.0
 	_wall_layer.modulate.a = 1.0
+	_style_layer.modulate.a = 1.0
 	_hint.modulate.a = 1.0
 	_done = true
 
@@ -109,6 +120,36 @@ func _count(to_value: float, seconds: float, setter: Callable) -> void:
 func _pause(seconds: float) -> void:
 	if not _skipped:
 		await get_tree().create_timer(seconds).timeout
+
+
+# The evaluation panel: a big rank letter, the points, and what earned them.
+func _draw_style_panel() -> void:
+	var style: Dictionary = result.get("style", {})
+	if style.is_empty():
+		return
+	var rank: String = style["rank"]
+	var colors := {"S": Art.AMBER, "A": Art.CYAN, "B": Art.ICE, "C": Art.VIOLET, "D": Color("8a9bb0")}
+	var color: Color = colors.get(rank, Art.ICE)
+	var panel := Rect2(780, 150, 280, 312)
+	_style_layer.draw_style_box(UiKit.glass(color, 0.55), panel)
+	_style_layer.draw_string(Game.font_bold, Vector2(800, 178), "EVALUATION", HORIZONTAL_ALIGNMENT_LEFT, -1, 14, Color(Art.ICE, 0.7))
+	Art.glow(_style_layer, Vector2(850, 262), 110.0, Color(color, 0.28))
+	_style_layer.draw_string(Game.font_bold, Vector2(800, 300), rank, HORIZONTAL_ALIGNMENT_LEFT, -1, 120, color)
+	_style_layer.draw_string(Game.font_bold, Vector2(920, 238), "%d" % style["total"], HORIZONTAL_ALIGNMENT_LEFT, -1, 38, Art.ICE)
+	_style_layer.draw_string(Game.font, Vector2(920, 262), "style points", HORIZONTAL_ALIGNMENT_LEFT, -1, 14, Color(Art.ICE, 0.7))
+	if Game.best_style > 0:
+		_style_layer.draw_string(Game.font, Vector2(920, 284), "best %d" % Game.best_style, HORIZONTAL_ALIGNMENT_LEFT, -1, 14, Color(Art.AMBER, 0.9))
+	var lines: Array = style["lines"]
+	for i in mini(lines.size(), 6):
+		var y := 326.0 + i * 19.0
+		_style_layer.draw_string(Game.font, Vector2(800, y), "%s x%d" % [lines[i][0], lines[i][1]], HORIZONTAL_ALIGNMENT_LEFT, -1, 14, Color(Art.ICE, 0.85))
+		_style_layer.draw_string(Game.font_bold, Vector2(800, y), "+%d" % lines[i][2], HORIZONTAL_ALIGNMENT_RIGHT, 240, 14, Art.MAGENTA.lightened(0.3))
+	if lines.is_empty():
+		_style_layer.draw_string(Game.font, Vector2(800, 340), "No tricks this dive.", HORIZONTAL_ALIGNMENT_LEFT, 240, 15, Color(Art.ICE, 0.6))
+		_style_layer.draw_string(Game.font, Vector2(800, 362), "Try a flip off the ramp, a loop,", HORIZONTAL_ALIGNMENT_LEFT, 240, 13, Color(Art.ICE, 0.5))
+		_style_layer.draw_string(Game.font, Vector2(800, 380), "or cut nets in quick succession.", HORIZONTAL_ALIGNMENT_LEFT, 240, 13, Color(Art.ICE, 0.5))
+	if int(style["best_chain"]) >= 2:
+		_style_layer.draw_string(Game.font, Vector2(800, 452), "Best net chain: %d" % style["best_chain"], HORIZONTAL_ALIGNMENT_LEFT, -1, 14, Art.AMBER)
 
 
 # If a wall stopped the run, show how much of it is left: progress even when you failed.

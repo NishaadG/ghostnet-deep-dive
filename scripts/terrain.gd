@@ -9,6 +9,8 @@ const SHEER := 90.0   # horizontal width of a "sheer" wall, so the slope is stee
 
 var points := PackedVector2Array()   # floor polyline, x ascending
 var decor: Array[Dictionary] = []    # {kind, x, y, size, seed, variant, up, width}
+var trick_zones: Array[Dictionary] = []   # {id, kind (canyon or drop), x0, x1, y0, y1}: places worth a clean-pass bonus
+var _zone_id := 0
 var view_x := 0.0
 var view_half := 1100.0              # half the visible width in world px
 var all_lit := false                 # true after the Lumen is freed: every coral glows
@@ -21,6 +23,7 @@ func setup(seed_value: int) -> void:
 	rng.seed = seed_value
 	points = PackedVector2Array([Vector2(-3000, Balance.START_FLOOR), Vector2(0, Balance.START_FLOOR)])
 	decor.clear()
+	trick_zones.clear()
 
 
 # Called every frame by the run: build ahead of the camera, forget what is far behind.
@@ -33,6 +36,8 @@ func update(camera_x: float, delta := 0.0) -> void:
 		points.remove_at(0)
 	while not decor.is_empty() and decor[0]["x"] < camera_x - Balance.TERRAIN_BEHIND:
 		decor.pop_front()
+	while not trick_zones.is_empty() and trick_zones[0]["x1"] < camera_x - Balance.TERRAIN_BEHIND:
+		trick_zones.pop_front()
 	queue_redraw()
 
 
@@ -79,16 +84,22 @@ func _add_step() -> void:
 			_add_decor("tower", roof_start.x, roof_start.y, 0.0, roof_end.x - roof_start.x, false)
 			var depth := rng.randf_range(250, 500)
 			var lower := rng.randf_range(100, 250)
+			var lip := points[points.size() - 1]
 			_drop(depth, SHEER)
 			_shelf(rng.randf_range(600, 1500), 15.0)
 			var y: float = points[points.size() - 1].y
 			points.append(Vector2(points[points.size() - 1].x + SHEER, y - depth + lower))
+			_add_zone("canyon", lip, points[points.size() - 1])
 		"slope":   # rock ledge, then a big drop
 			_shelf(rng.randf_range(500, 900), 25.0)
+			var slope_lip := points[points.size() - 1]
 			_drop(rng.randf_range(1200, 2500), 150.0)
+			_add_zone("drop", slope_lip, points[points.size() - 1])
 		"trench":  # short ledge, then a very long drop
 			_shelf(rng.randf_range(250, 450), 10.0)
+			var trench_lip := points[points.size() - 1]
 			_drop(rng.randf_range(2500, 4500), 170.0)
+			_add_zone("drop", trench_lip, points[points.size() - 1])
 	_decorate(first_new, zone)
 
 
@@ -143,6 +154,12 @@ func _decorate(first_point: int, zone: String) -> void:
 			"city":
 				if rng.randf() < 0.3:
 					_add_decor("fan", x, y, rng.randf_range(60, 100), 0.0, false)
+
+
+# Remember a canyon or drop so the run can award a bonus for passing it without touching rock.
+func _add_zone(kind: String, from: Vector2, to: Vector2) -> void:
+	_zone_id += 1
+	trick_zones.append({"id": _zone_id, "kind": kind, "x0": from.x, "x1": to.x, "y0": from.y, "y1": to.y})
 
 
 func _add_decor(kind: String, x: float, y: float, size: float, width: float, hanging: bool) -> void:

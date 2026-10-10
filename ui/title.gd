@@ -87,30 +87,33 @@ func _show_credits() -> void:
 	_credits.size = size
 	add_child(_credits)
 	var shade := ColorRect.new()
-	shade.color = Color(Art.INK, 0.8)
+	shade.color = Color(Art.INK, 0.93)
 	shade.size = size
 	_credits.add_child(shade)
-	var panel := UiKit.panel(Vector2(250, 90), Vector2(780, 540))
-	_credits.add_child(panel)
+	_credits.add_child(UiKit.panel(Vector2(230, 40), Vector2(820, 640)))
+	var heading := UiKit.label("CREDITS", 34, true)
+	heading.position = Vector2(270, 56)
+	_credits.add_child(heading)
+	# One column of paragraphs that wrap inside the panel, so nothing can run past its edge.
+	var column := VBoxContainer.new()
+	column.position = Vector2(270, 112)
+	column.custom_minimum_size = Vector2(740, 0)
+	column.add_theme_constant_override("separation", 10)
+	_credits.add_child(column)
 	var lines := [
-		["CREDITS", 34, true, Art.ICE],
-		["GHOSTNET: Deep Dive is a game about ghost nets: fishing nets lost or cut loose that keep trapping sea life.", 17, false, Art.ICE],
-		["Message: cleanup helps one animal at a time, but the problem only ends at its source (SDG 14, Life Below Water).", 17, false, Art.CYAN],
-		["Art: every shape, glow and animation is drawn by code, original to this project.", 17, false, Art.ICE],
-		["Sound effects: original kit audio (see assets/audio).", 17, false, Art.ICE],
-		["Font: Poppins, SIL Open Font License.", 17, false, Art.ICE],
-		["Engine: Godot 4.6, GDScript only, no add-ons.", 17, false, Art.ICE],
-		["AI tool disclosure: this game's scripts, art code, docs and tests were written with Claude Code (Anthropic).", 17, false, Art.AMBER],
+		["GHOSTNET: Deep Dive is a game about ghost nets: fishing nets lost or cut loose that keep trapping sea life.", Art.ICE],
+		["Message: cleanup helps one animal at a time, but the problem only ends at its source (SDG 14, Life Below Water).", Art.CYAN],
+		["Art: every shape, glow and animation is drawn by code, original to this project.", Art.ICE],
+		["Music: two original tracks synthesised by tools/make_music.py. Sound effects: original kit audio.", Art.ICE],
+		["Font: Poppins, SIL Open Font License.   Engine: Godot 4.6, GDScript only, no add-ons.", Art.ICE],
+		["AI tool disclosure: this game's scripts, art code, docs and tests were written with an AI coding assistant (Claude Code).", Art.AMBER],
 	]
-	var y := 112.0
-	for line in lines:
-		var label := UiKit.label(line[0], line[1], line[2], line[3])
-		label.position = Vector2(290, y)
+	for entry in lines:
+		var label := UiKit.label(entry[0], 17, false, entry[1])
 		label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		label.size = Vector2(700, 60)
-		_credits.add_child(label)
-		y += 96.0 if line[1] > 30 else 62.0
+		label.custom_minimum_size = Vector2(740, 0)
+		column.add_child(label)
 	var back := UiKit.button("BACK", Vector2(200, 50), Art.CYAN, true)
-	back.position = Vector2(540, 556)
+	back.position = Vector2(540, 604)
 	back.pressed.connect(func(): _credits.queue_free())
 	_credits.add_child(back)

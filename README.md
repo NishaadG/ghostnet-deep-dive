@@ -17,6 +17,19 @@ the **Net Return** upgrade (Port Halo programme), which permanently removes loos
 | Pause | `Esc` | round pause button (top right) |
 | Confirm / Dive | `Enter` | click |
 
+## Tricks and evaluation
+
+Every dive is scored for style and ranked D, C, B, A or S. Style points add a small bonus to your tags (capped at about 20% of the dive's normal tags).
+
+| Trick | How |
+|---|---|
+| Airtime and flips | Off the ski-jump ramp (and any early surface jump), hold `D` to spin forward or `A` backward. Land nose-first to keep them. A full flip plus a steep splash is the big combo. |
+| Perfect splash | Hit the water at 40 to 70 degrees nose-down after airtime or a flip. |
+| Loop | Hold nose-up (`A`) at speed with room above and below to loop 360 degrees. |
+| Floor grind | Skim the seabed at a shallow angle for half a second or more. |
+| Canyon / drop clear | Cross a Drowned City street canyon, or plunge down a Slope or Trench drop, without touching rock. |
+| Net chain | Cut nets within 2.5 s of each other. The multiplier grows (up to x3) and boosts every trick while the chain lasts. |
+
 Tip: dive in off the ramp with the nose down (a steep entry keeps all your speed), plunge for speed, then pull up and glide.
 
 ## Debug keys (work in the web build too)

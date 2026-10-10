@@ -6,6 +6,7 @@ extends RefCounted
 
 var spawner: Spawner         # optional: when set, the bot steers toward the nearest net ahead
 var clumsiness := 0.0
+var flip_in_air := false     # show off: do a full forward flip off the ramp, then dive in nose-first
 var rng := RandomNumberGenerator.new()
 var _wander := 0.0           # current error in degrees
 var _wander_timer := 0.0
@@ -24,6 +25,13 @@ func steer(p: Player, delta := 1.0 / 60.0) -> void:
 		floor_ahead = minf(floor_ahead, p.terrain.floor_y(x))
 		ceiling_ahead = maxf(ceiling_ahead, p.terrain.ceiling_y(x))
 	var clearance := floor_ahead - p.position.y
+	if flip_in_air and p.state == Player.State.AIR and p.position.y < 0.0 and p.angle < TAU + 0.96:
+		p.tilt_input = 1.0                                  # keep spinning until a whole turn plus a diving angle
+		p.thrust_input = false
+		return
+	if flip_in_air and p.state == Player.State.AIR and p.angle >= TAU + 0.96:
+		p.tilt_input = 0.0                                  # hold the diving angle (about 55 degrees past a full turn)
+		return
 	var target_deg := 8.0
 	if p.state != Player.State.WATER:
 		target_deg = 55.0                                  # dive into the water steeply

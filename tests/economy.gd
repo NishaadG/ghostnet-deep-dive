@@ -9,6 +9,7 @@ const BUY_ORDER := ["o2", "ramp", "craft", "fuel", "booster", "cutter", "ballast
 		"craft", "booster", "cutter", "net_return", "fuel", "o2", "craft", "ramp", "booster", "cutter",
 		"net_return", "ballast", "pip", "o2", "craft", "booster", "cutter", "net_return", "net_return", "net_return"]
 const MAX_DIVES := 90
+var flips := true      # the bot does a flip off the ramp every dive, like a player who has learned the trick
 
 
 func _ready() -> void:
@@ -17,6 +18,8 @@ func _ready() -> void:
 	for arg in OS.get_cmdline_user_args():
 		if arg.begins_with("clumsy="):
 			clumsy = float(arg.substr(7))
+		elif arg == "noflip":
+			flips = false
 		elif arg.begins_with("runs="):
 			runs = int(arg.substr(5))
 	Game.save_enabled = false
@@ -42,6 +45,7 @@ func _play_through(clumsy: float, seed_value: int, verbose: bool) -> int:
 		add_child(run)
 		run.player.scripted = true
 		bot.spawner = run.spawner
+		bot.flip_in_air = flips
 		var frames := 0
 		while not run.ended and frames < 60 * 150 and not run.lumen_freed:
 			bot.steer(run.player)

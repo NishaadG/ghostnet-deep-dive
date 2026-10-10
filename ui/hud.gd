@@ -17,6 +17,7 @@ var _radio_t := 0.0
 var _radio_queued := []           # one waiting line [who, text], so a new line never cuts one off mid-sentence
 const RADIO_TIME := 6.0
 const RADIO_MIN := 3.0            # a line stays at least this long before the next replaces it
+var _tricks: Array[Dictionary] = []     # pop-ups: {text, points, t}
 
 
 func _ready() -> void:
@@ -43,6 +44,11 @@ func show_radio(who: String, text: String) -> void:
 	_radio_who = who
 	_radio_text = text
 	_radio_t = RADIO_TIME
+func show_trick(text: String, points: int) -> void:
+	_tricks.append({"text": text, "points": points, "t": 2.4})
+	if _tricks.size() > 5:
+		_tricks.pop_front()
+	Audio.play("pickup", -6.0, 1.5 if points > 0 else 1.2)
 
 
 func show_towing(reason: String) -> void:
@@ -57,6 +63,9 @@ func _process(delta: float) -> void:
 		var next: Array = _radio_queued
 		_radio_queued = []
 		show_radio(next[0], next[1])
+	for trick in _tricks:
+		trick["t"] -= delta
+	_tricks = _tricks.filter(func(t: Dictionary): return t["t"] > 0.0)
 	queue_redraw()
 
 
@@ -70,6 +79,8 @@ func _draw() -> void:
 	_oxygen_panel(player, oxygen_fraction)
 	_distance_panel(player)
 	_tags_chip()
+	_style_readout()
+	_trick_popups()
 	_journey_strip(maxf(0.0, player.position.x / Balance.PX_PER_M))
 	_banner()
 	_caption()
@@ -119,6 +130,31 @@ func _tags_chip() -> void:
 	draw_style_box(UiKit.glass(Art.AMBER, 0.55, 22), Rect2(560, 18, 160, 44))
 	_tag_icon(Vector2(590, 40), 1.0)
 	draw_string(Game.font_bold, Vector2(614, 49), "%d" % run.tags_so_far(), HORIZONTAL_ALIGNMENT_LEFT, -1, 26, Art.AMBER)
+
+
+# Style points under the tags chip, and the net-chain multiplier with a ring showing the time left.
+func _style_readout() -> void:
+	var style := run.style
+	draw_string(Game.font, Vector2(560, 84), "STYLE  %d" % style.total, HORIZONTAL_ALIGNMENT_LEFT, -1, 15, Color(Art.MAGENTA.lightened(0.3), 0.95))
+	if style.chain > 0:
+		var centre := Vector2(742, 40)
+		draw_arc(centre, 18.0, 0.0, TAU, 28, Color(1, 1, 1, 0.15), 4.0, true)
+		draw_arc(centre, 18.0, -PI / 2.0, -PI / 2.0 + TAU * style.chain_fraction(), 28, Art.AMBER, 4.0, true)
+		draw_string(Game.font_bold, Vector2(centre.x + 26, centre.y + 8), "x%.2f" % style.multiplier, HORIZONTAL_ALIGNMENT_LEFT, -1, 22, Art.AMBER)
+		draw_string(Game.font, Vector2(centre.x - 18, centre.y + 5), str(style.chain), HORIZONTAL_ALIGNMENT_CENTER, 36, 15, Art.ICE)
+
+
+# Trick pop-ups stack down the left side and fade out.
+func _trick_popups() -> void:
+	for i in _tricks.size():
+		var trick: Dictionary = _tricks[_tricks.size() - 1 - i]
+		var a := clampf(trick["t"] * 1.5, 0.0, 1.0)
+		var y := 190.0 + i * 38.0 - (1.0 - a) * 10.0
+		var text: String = trick["text"]
+		if trick["points"] > 0:
+			text += "   +%d" % trick["points"]
+		draw_string(Game.font_bold, Vector2(32, y + 1), text, HORIZONTAL_ALIGNMENT_LEFT, -1, 26, Color(0, 0, 0, a * 0.6))
+		draw_string(Game.font_bold, Vector2(30, y), text, HORIZONTAL_ALIGNMENT_LEFT, -1, 26, Color(Art.MAGENTA.lightened(0.4) if trick["points"] > 0 else Art.ICE, a))
 
 
 # The fleet tag: a small amber tag shape with a hole.
@@ -179,7 +215,7 @@ func _radio() -> void:
 	var a := clampf(minf(_radio_t, RADIO_TIME - _radio_t) * 4.0, 0.0, 1.0)
 	var speaker: Dictionary = Story.SPEAKERS.get(_radio_who, Story.SPEAKERS["pip"])
 	var color: Color = speaker["color"]
-	var rect := Rect2(20, 126, 470, 82)
+	var rect := Rect2(790, 130, 470, 82)             # right side: the left is for trick pop-ups
 	draw_style_box(UiKit.glass(color, 0.7 * a), rect)
 	draw_circle(rect.position + Vector2(18, 20), 4.0 + sin(Time.get_ticks_msec() / 120.0), Color(color, a))   # "on air" light
 	draw_string(Game.font_bold, rect.position + Vector2(30, 26), String(speaker["name"]), HORIZONTAL_ALIGNMENT_LEFT, -1, 13, Color(color, a))

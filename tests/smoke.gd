@@ -13,6 +13,13 @@ func _ready() -> void:
 	run.player.scripted = true
 	var bot := FlightBot.new()
 	bot.spawner = run.spawner
+	bot.flip_in_air = true                  # also checks the style system end to end
+	for x in [1300.0, 1900.0]:              # guarantee nets on the path so "a net was cut" does not depend on luck
+		var net := Net.new()
+		net.setup(0, false)
+		net.position = Vector2(x, run.terrain.floor_y(x) - 260.0)
+		run.spawner.add_child(net)
+		run.spawner.nets.append(net)
 	var dt := 1.0 / 60.0
 	for frame in int(20.0 / dt):
 		bot.steer(run.player)
@@ -27,6 +34,8 @@ func _ready() -> void:
 		failures.append("run should have ended within 20 s")
 	if run.nets_cut < 1:
 		failures.append("a net should have been cut")
+	if run.style.categories.get("Flips", {}).get("count", 0) < 1:
+		failures.append("a flip off the ramp should score")
 	var result := run.make_result()
 	var results := Results.new()           # the results screen must build without errors
 	results.result = result
