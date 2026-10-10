@@ -20,7 +20,7 @@ var seen_scenes: Array = []    # cutscene ids this slot has already played (see 
 
 var settings := {"master": 0.8, "music": 0.7, "sfx": 0.9, "music_on": true, "sfx_on": true,
 		"fullscreen": false, "shake": true, "touch": false, "last_slot": 0,
-		"gallery": []}             # every cutscene seen in any slot: the title's Story screen can replay them
+		"gallery": [], "debug_mode": true}             # every cutscene seen in any slot: the title's Story screen can replay them
 var save_enabled := true       # tests switch this off so they never touch a real save
 var save_dir := "user://"      # tests point this at a throwaway folder name prefix
 var ui_theme := Theme.new()

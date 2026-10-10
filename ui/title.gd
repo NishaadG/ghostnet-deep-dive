@@ -25,6 +25,15 @@ func _ready() -> void:
 	_logo.draw.connect(_draw_logo)
 	add_child(_logo)
 	_build_buttons()
+	if Debug.ENABLED:                                 # DEBUG mode or the REAL game (see autoload/debug.gd)
+		var mode := UiKit.button("", Vector2(230, 42), Art.MAGENTA, false, 15)
+		mode.position = Vector2(20, 24)
+		var show_mode := func(): mode.text = "MODE:  DEBUG" if Debug.active else "MODE:  REAL GAME"
+		show_mode.call()
+		mode.pressed.connect(func():
+			Debug.set_active(not Debug.active)
+			show_mode.call())
+		add_child(mode)
 	var fullscreen := UiKit.button("FULLSCREEN", Vector2(170, 42), Art.CYAN, false, 15)
 	fullscreen.position = Vector2(1090, 24)
 	fullscreen.pressed.connect(func():

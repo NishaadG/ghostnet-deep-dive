@@ -91,6 +91,8 @@ func _build() -> void:
 			["Tear all walls", func(): Debug.set_walls(true)], ["Restore walls", func(): Debug.set_walls(false)],
 			["Unlock Endless", Game.debug_unlock_endless], ["Unlock scenes", Game.debug_unlock_scenes],
 			["Reset slot", func(): Game.debug_reset(); Debug.refresh_screen()], ["Mid-game save", func(): Game.debug_mid_save(); Debug.refresh_screen()]])
+	_heading("MODE")
+	_grid([["Switch to REAL game", func(): Debug.set_active(false)]])
 	_heading("GO TO")
 	_grid([["Title", func(): Debug.go("title")], ["Workshop", func(): Debug.go("workshop")], ["New dive", func(): Debug.go("dive")]])
 

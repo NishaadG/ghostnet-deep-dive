@@ -216,10 +216,12 @@ func _unhandled_input(event: InputEvent) -> void:
 		_open_pause()
 
 
-# Debug keys, also live in the web build (listed in the README).
+# Debug keys, also live in the web build (listed in the README). Only in DEBUG mode.
 func _unhandled_key_input(event: InputEvent) -> void:
 	if not (event is InputEventKey and event.pressed and not event.echo):
 		return
+	if not Debug.active:
+		return                                  # the real game: no debug keys at all
 	var key := (event as InputEventKey).keycode
 	if key == KEY_F9 or key == KEY_QUOTELEFT:
 		Debug.toggle_panel()                    # the developer panel (autoload/debug.gd)

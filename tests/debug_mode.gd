@@ -23,6 +23,7 @@ func _ready() -> void:
 	add_child(run)
 	run.player.scripted = true
 	Debug.main = null                               # the panel can build without a main scene
+	Debug.active = true                             # whatever this machine's saved mode is
 	_step(run, 5)
 	for metres in [2900.0, 100.0, 3650.0, 0.0, 1600.0]:                # forward, back (terrain rebuilt), far forward, start, mid
 		run.debug_teleport(metres)
@@ -64,6 +65,12 @@ func _ready() -> void:
 	Debug.cheats["wall_kill"] = true
 	check(Debug.is_on("wall_kill"), "cheat flags can be switched on")
 	Debug.cheats["wall_kill"] = false
+	# the DEBUG / REAL GAME switch: real mode turns every cheat off and ignores them
+	Debug.cheats["god"] = true
+	Debug.set_active(false)
+	check(not Debug.is_on("god") and not Debug.cheats["god"], "the real game has no cheats")
+	Debug.set_active(true)
+	check(Debug.active, "debug mode can be switched back on")
 	# style test buttons
 	var before := run.style.total
 	run.style.looped()

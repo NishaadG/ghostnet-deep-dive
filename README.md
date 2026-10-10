@@ -61,6 +61,10 @@ Press **F9** (or the `` ` `` key) on any screen to open the developer panel on t
 - **Game state:** +500 tags, max all gear, tear or restore all walls, unlock Endless and scenes, reset the slot, load the mid-game save, jump to the title, workshop or a new dive.
 - A live readout of fps, position, speed, oxygen, zone and style.
 
+**DEBUG or REAL GAME:** the button at the top left of the title screen switches modes (remembered between launches).
+In the real game F9, F1 to F5 and every cheat are off, exactly what a player gets. The panel also has a "Switch to REAL game" button,
+and you can choose at launch: `godot --path . -- debug` or `godot --path . -- real`. A small "DEBUG MODE" tag shows in the corner while it is on.
+
 All of it lives in `autoload/debug.gd` (actions) and `ui/debug_panel.gd` (buttons). To ship a build without it, set `ENABLED := false` at the top of `debug.gd`.
 
 ## Opening and exporting
