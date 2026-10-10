@@ -55,6 +55,7 @@ func _ready() -> void:
 		check(last.kind == creature, "spawn adds a %s" % creature)
 	# god mode: a creature touch does no harm
 	Debug.cheats["god"] = true
+	run.player.stunned = 0.0                           # a random creature may have stunned Nova during the earlier steps
 	var oxygen := run.player.oxygen
 	run._on_hazard_touched(run.spawner.hazards[-1])
 	check(run.player.oxygen == oxygen and run.player.stunned == 0.0, "god mode: creatures are harmless")
