@@ -18,7 +18,7 @@ var story_complete := false    # true after the Lumen is freed; unlocks Endless 
 var endless_mode := false
 var seen_scenes: Array = []    # cutscene ids this slot has already played (see Story)
 
-var settings := {"master": 0.8, "music": 0.7, "sfx": 0.9, "music_on": true, "sfx_on": true,
+var settings := {"master": 0.8, "music": 0.7, "sfx": 0.9, "voice": 1.0, "music_on": true, "sfx_on": true, "voice_on": true,
 		"fullscreen": false, "shake": true, "touch": false, "last_slot": 0,
 		"gallery": [], "debug_mode": true}             # every cutscene seen in any slot: the title's Story screen can replay them
 var save_enabled := true       # tests switch this off so they never touch a real save

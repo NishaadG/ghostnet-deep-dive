@@ -49,6 +49,18 @@ Sea creatures get in the way (they cannot be cut):
 | `F9` | open the debug panel (teleport, cheats, spawners) |
 | `F5` | unlock every cutscene in the title's STORY screen (to show the whole story quickly) |
 
+## Voice-over
+
+Every cutscene line and radio call is spoken. The clips are `assets/voice/<id>.mp3`, made with ElevenLabs by
+`tools/make_voices.py` from the story text itself (`Story.voice_lines()` in `scripts/story.gd`). Who speaks with which voice
+is in `tools/voice_cast.json`. After changing any story text:
+
+1. `godot --headless --path . res://tools/voice_lines.tscn` (writes `tools/voice_lines.json`)
+2. `python3 tools/make_voices.py make` (only changed lines are re-made; your API key goes in `~/.config/elevenlabs_key`)
+3. `godot --headless --path . --import`
+
+A line without a clip just plays silently. Settings has a Voices slider and an ON/OFF switch; music dips while someone speaks.
+
 ## Debug mode (F9)
 
 Press **F9** (or the `` ` `` key) on any screen to open the developer panel on the right side of the screen. It has:

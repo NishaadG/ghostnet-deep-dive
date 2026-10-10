@@ -37,13 +37,16 @@ func show_caption(text: String, seconds: float) -> void:
 
 
 # A radio line from Pip, Nova or Captain Vale (see Story). It types out, stays, then fades.
-func show_radio(who: String, text: String) -> void:
+func show_radio(who: String, text: String, voice := "") -> void:
 	if _radio_t > RADIO_TIME - RADIO_MIN:
-		_radio_queued = [who, text]
+		_radio_queued = [who, text, voice]
 		return
 	_radio_who = who
 	_radio_text = text
-	_radio_t = RADIO_TIME
+	_radio_t = maxf(RADIO_TIME, Audio.voice_length(voice) + 1.5)     # long spoken lines stay up until they finish
+	Audio.play_voice(voice)
+
+
 func show_trick(text: String, points: int, quiet := false) -> void:
 	_tricks.append({"text": text, "points": points, "t": 2.4})
 	if _tricks.size() > 5:
@@ -66,7 +69,7 @@ func _process(delta: float) -> void:
 	if not _radio_queued.is_empty() and _radio_t <= RADIO_TIME - RADIO_MIN:
 		var next: Array = _radio_queued
 		_radio_queued = []
-		show_radio(next[0], next[1])
+		show_radio(next[0], next[1], next[2])
 	queue_redraw()
 
 

@@ -19,6 +19,7 @@ var _typed := 0.0
 var _auto_wait := -1.0            # seconds left before a text-less beat moves on by itself
 var _done := false
 var _age := 0.0
+var _speed := TYPE_SPEED          # characters per second for the current line (matches its voice clip)
 
 var _caption_panel: Panel
 var _caption: Label
@@ -120,7 +121,7 @@ func _process(delta: float) -> void:
 	_age += delta
 	_title.modulate.a = clampf(3.5 - _age, 0.0, 1.0)              # the scene's name fades after a few seconds
 	if _active:
-		_typed += delta * TYPE_SPEED
+		_typed += delta * _speed
 		_active.visible_characters = int(_typed)
 		var typing := _active.visible_characters < _active.text.length()
 		_hint.visible = not typing
@@ -212,10 +213,18 @@ func _show_text(beat: Dictionary) -> void:
 	if _active:
 		_typed = 0.0
 		_active.visible_characters = 0
+		var voice := Story.beat_voice(scene_id, _index)
+		Audio.play_voice(voice)
+		var seconds := Audio.voice_length(voice)
+		# With a voice, the text finishes typing just before the speaker does; never slower than a calm read.
+		_speed = maxf(_active.text.length() / (seconds * 0.85), 22.0) if seconds > 0.0 else TYPE_SPEED
+	else:
+		Audio.stop_voice()
 
 
 func _finish() -> void:
 	if _done:
 		return
 	_done = true
+	Audio.stop_voice()
 	finished.emit()

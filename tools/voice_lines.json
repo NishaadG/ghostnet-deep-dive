@@ -1,0 +1,677 @@
+[
+	{
+		"id": "intro_00",
+		"text": "2190. Port Halo.",
+		"who": "narrator"
+	},
+	{
+		"id": "intro_01",
+		"text": "A floating city, fed by fleets that never dock.",
+		"who": "narrator"
+	},
+	{
+		"id": "intro_02",
+		"text": "Net's snagged on the old wrecks again, Captain!",
+		"who": "ilo"
+	},
+	{
+		"id": "intro_03",
+		"text": "Cut it loose.",
+		"who": "captain"
+	},
+	{
+		"id": "intro_04",
+		"text": "A new net costs less than an hour of hauling.",
+		"who": "captain"
+	},
+	{
+		"id": "intro_05",
+		"text": "It happens a hundred times a day. Up there, the net is forgotten in a minute.",
+		"who": "narrator"
+	},
+	{
+		"id": "intro_06",
+		"text": "Down here, it keeps fishing. No boat. No crew. No end.",
+		"who": "narrator"
+	},
+	{
+		"id": "intro_07",
+		"text": "Divers call them ghost nets.",
+		"who": "narrator"
+	},
+	{
+		"id": "intro_08",
+		"text": "Nova Vale, 16. Reef warden. Also the captain's daughter.",
+		"who": "narrator"
+	},
+	{
+		"id": "intro_09",
+		"text": "That is ghost net 212 this month.",
+		"who": "pip"
+	},
+	{
+		"id": "intro_10",
+		"text": "Easy, little one. Almost free.",
+		"who": "nova"
+	},
+	{
+		"id": "intro_12",
+		"text": "Lumen Reef. The last living reef under Port Halo.",
+		"who": "narrator"
+	},
+	{
+		"id": "intro_13",
+		"text": "It glows because of her. Where the Lumen sings, coral wakes.",
+		"who": "narrator"
+	},
+	{
+		"id": "intro_14",
+		"text": "Every night I count the lights she keeps on.",
+		"who": "nova"
+	},
+	{
+		"id": "intro_15",
+		"text": "Nova. The song just stopped.",
+		"who": "pip"
+	},
+	{
+		"id": "intro_16",
+		"text": "41 lights went dark in one minute.",
+		"who": "narrator"
+	},
+	{
+		"id": "intro_17",
+		"text": "Her last signal came from the Abyss. 3,600 metres out, past four walls of net.",
+		"who": "pip"
+	},
+	{
+		"id": "intro_18",
+		"text": "Then we cut through them.",
+		"who": "nova"
+	},
+	{
+		"id": "intro_19",
+		"text": "With a kickboard and a pair of wire snips?",
+		"who": "pip"
+	},
+	{
+		"id": "intro_20",
+		"text": "We start small. The harbourmaster pays a bounty for every fleet tag. Tags buy gear.",
+		"who": "nova"
+	},
+	{
+		"id": "intro_21",
+		"text": "And the launch ramp? It is bolted to your mother's boat.",
+		"who": "pip"
+	},
+	{
+		"id": "intro_22",
+		"text": "Mom won't notice. She never looks down.",
+		"who": "nova"
+	},
+	{
+		"id": "wall0_meet_00",
+		"text": "400 metres out. The Reef Gate.",
+		"who": "narrator"
+	},
+	{
+		"id": "wall0_meet_01",
+		"text": "Scanning. Sixty nets, knotted into one. The current piled them against the old harbour arch.",
+		"who": "pip"
+	},
+	{
+		"id": "wall0_meet_02",
+		"text": "It's a wall. A wall made of nets.",
+		"who": "nova"
+	},
+	{
+		"id": "wall0_meet_03",
+		"text": "Anything that swims into it stays.",
+		"who": "pip"
+	},
+	{
+		"id": "wall0_meet_04",
+		"text": "Then it doesn't stay up.",
+		"who": "nova"
+	},
+	{
+		"id": "wall0_meet_05",
+		"text": "Hit it fast and hit it heavy. It does not heal. Every hit counts, even the ones that bounce.",
+		"who": "pip"
+	},
+	{
+		"id": "wall0_meet_06",
+		"text": "Then we keep coming back.",
+		"who": "nova"
+	},
+	{
+		"id": "wall0_torn_00",
+		"text": "The Reef Gate tears open.",
+		"who": "narrator"
+	},
+	{
+		"id": "wall0_torn_01",
+		"text": "Two hundred fish just swam home.",
+		"who": "pip"
+	},
+	{
+		"id": "wall0_torn_02",
+		"text": "Knotted into the wall: a fleet tag.",
+		"who": "narrator"
+	},
+	{
+		"id": "wall0_torn_03",
+		"text": "Boat 11. Orla's crew. They buy Mom's coffee every morning.",
+		"who": "nova"
+	},
+	{
+		"id": "wall0_torn_04",
+		"text": "Every net in that wall had a tag. I logged all sixty.",
+		"who": "pip"
+	},
+	{
+		"id": "wall0_torn_05",
+		"text": "Sixty fleet tags. That's a fat bounty, kid.",
+		"who": "harbour"
+	},
+	{
+		"id": "wall0_torn_06",
+		"text": "That's sixty nets.",
+		"who": "nova"
+	},
+	{
+		"id": "wall0_torn_07",
+		"text": "I pay for tags. I don't ask where they've been.",
+		"who": "harbour"
+	},
+	{
+		"id": "wall0_torn_08",
+		"text": "Maybe you should.",
+		"who": "nova"
+	},
+	{
+		"id": "wall0_torn_09",
+		"text": "Next: the City Seal, 1,500 metres out, in the Drowned City.",
+		"who": "narrator"
+	},
+	{
+		"id": "net_return_00",
+		"text": "Port Halo. A new bin on the dock, painted bright orange.",
+		"who": "narrator"
+	},
+	{
+		"id": "net_return_01",
+		"text": "First net ever hauled back on purpose. Boat 03. Took them an hour and ten minutes.",
+		"who": "harbour"
+	},
+	{
+		"id": "net_return_02",
+		"text": "And the sea got one less ghost.",
+		"who": "nova"
+	},
+	{
+		"id": "net_return_03",
+		"text": "One boat. Eleven to go. The others say it's a waste of fuel.",
+		"who": "harbour"
+	},
+	{
+		"id": "net_return_04",
+		"text": "Then I'll keep paying for it. Every tag I bring up.",
+		"who": "nova"
+	},
+	{
+		"id": "net_return_05",
+		"text": "Every net that comes home is one Nova never has to cut.",
+		"who": "narrator"
+	},
+	{
+		"id": "wall1_meet_00",
+		"text": "1,500 metres. The Drowned City.",
+		"who": "narrator"
+	},
+	{
+		"id": "wall1_meet_01",
+		"text": "Old Halo. The sea rose over it in 2131. The people built a new city on top, and kept fishing.",
+		"who": "narrator"
+	},
+	{
+		"id": "wall1_meet_02",
+		"text": "Grandma's school is down here somewhere.",
+		"who": "nova"
+	},
+	{
+		"id": "wall1_meet_03",
+		"text": "The City Seal. Nets wrapped street to street. Three times thicker than the Reef Gate.",
+		"who": "pip"
+	},
+	{
+		"id": "wall1_meet_04",
+		"text": "Nova. Pip's beacon puts you past the reef. Come up. Now.",
+		"who": "radio"
+	},
+	{
+		"id": "wall1_meet_05",
+		"text": "Not yet, Mom.",
+		"who": "nova"
+	},
+	{
+		"id": "wall1_meet_06",
+		"text": "That city drowned once. I am not losing you to it.",
+		"who": "radio"
+	},
+	{
+		"id": "wall1_meet_07",
+		"text": "She sounds scared.",
+		"who": "pip"
+	},
+	{
+		"id": "wall1_meet_08",
+		"text": "She sounds like the captain.",
+		"who": "nova"
+	},
+	{
+		"id": "wall1_torn_00",
+		"text": "The City Seal gives way.",
+		"who": "narrator"
+	},
+	{
+		"id": "wall1_torn_01",
+		"text": "Behind it, an old sign, still bolted to the street.",
+		"who": "narrator"
+	},
+	{
+		"id": "wall1_torn_02",
+		"text": "This was a protected reef. Before the water came up.",
+		"who": "pip"
+	},
+	{
+		"id": "wall1_torn_03",
+		"text": "So we knew. Sixty years ago, we already knew.",
+		"who": "nova"
+	},
+	{
+		"id": "wall1_torn_04",
+		"text": "Another tag. The boat number is scraped off.",
+		"who": "narrator"
+	},
+	{
+		"id": "wall1_torn_05",
+		"text": "Boat zero-something. Nine boats in the fleet have a number under ten.",
+		"who": "pip"
+	},
+	{
+		"id": "wall1_torn_06",
+		"text": "...Keep logging, Pip.",
+		"who": "nova"
+	},
+	{
+		"id": "wall1_torn_07",
+		"text": "You're bringing up a lot of tags, Nova.",
+		"who": "captain"
+	},
+	{
+		"id": "wall1_torn_08",
+		"text": "They're your fleet's tags, Mom.",
+		"who": "nova"
+	},
+	{
+		"id": "wall1_torn_09",
+		"text": "Hauling a snag back costs an hour. An hour is fuel. Fuel is wages. Twelve crews eat because we don't stop.",
+		"who": "captain"
+	},
+	{
+		"id": "wall1_torn_10",
+		"text": "The reef doesn't eat at all any more.",
+		"who": "nova"
+	},
+	{
+		"id": "wall1_torn_11",
+		"text": "Neither of them slept that night.",
+		"who": "narrator"
+	},
+	{
+		"id": "wall1_torn_12",
+		"text": "Next: the Slope Curtain, 2,800 metres out, where the light ends.",
+		"who": "narrator"
+	},
+	{
+		"id": "wall2_meet_00",
+		"text": "2,800 metres. Where the Slope drops into the Trench.",
+		"who": "narrator"
+	},
+	{
+		"id": "wall2_meet_01",
+		"text": "Light ends here. I'll be your torch.",
+		"who": "pip"
+	},
+	{
+		"id": "wall2_meet_02",
+		"text": "Wait. Listen.",
+		"who": "pip"
+	},
+	{
+		"id": "wall2_meet_03",
+		"text": "That's her. She's still singing.",
+		"who": "nova"
+	},
+	{
+		"id": "wall2_meet_04",
+		"text": "Barely. Something is pressing on her chest.",
+		"who": "pip"
+	},
+	{
+		"id": "wall2_meet_05",
+		"text": "The Drift. Everything the surface cuts loose ends up here.",
+		"who": "narrator"
+	},
+	{
+		"id": "wall2_meet_06",
+		"text": "I cut one, three more fall.",
+		"who": "nova"
+	},
+	{
+		"id": "wall2_meet_07",
+		"text": "The Slope Curtain. Old nets, heavy with plastic. We will need real speed.",
+		"who": "pip"
+	},
+	{
+		"id": "wall2_meet_08",
+		"text": "Then give me the dark. I'll bring the speed.",
+		"who": "nova"
+	},
+	{
+		"id": "wall2_torn_00",
+		"text": "The Slope Curtain falls away into the dark.",
+		"who": "narrator"
+	},
+	{
+		"id": "wall2_torn_01",
+		"text": "The Trench is open. The Abyss is past it. So is she.",
+		"who": "pip"
+	},
+	{
+		"id": "wall2_torn_02",
+		"text": "Three hundred tags, Captain. Every single one of them is ours.",
+		"who": "harbour"
+	},
+	{
+		"id": "wall2_torn_03",
+		"text": "Ours. Not mine.",
+		"who": "captain"
+	},
+	{
+		"id": "wall2_torn_04",
+		"text": "The Lumen is under all of it, Mom. She went quiet the night the fleet cut forty nets.",
+		"who": "nova"
+	},
+	{
+		"id": "wall2_torn_05",
+		"text": "The Lumen is a bedtime story. A whale your grandmother made up.",
+		"who": "captain"
+	},
+	{
+		"id": "wall2_torn_06",
+		"text": "Pip heard her. Three days ago.",
+		"who": "nova"
+	},
+	{
+		"id": "wall2_torn_08",
+		"text": "The return bin is on the dock. Can't make anyone use it.",
+		"who": "harbour"
+	},
+	{
+		"id": "wall2_torn_09",
+		"text": "Then make it worth using. Put the bounty on nets that come home, not just on tags.",
+		"who": "nova"
+	},
+	{
+		"id": "wall2_torn_10",
+		"text": "Next: the Lumen's Net, 3,600 metres out, in the Abyss.",
+		"who": "narrator"
+	},
+	{
+		"id": "wall3_meet_00",
+		"text": "3,600 metres. The Abyss.",
+		"who": "narrator"
+	},
+	{
+		"id": "wall3_meet_01",
+		"text": "And that is where they found her.",
+		"who": "narrator"
+	},
+	{
+		"id": "wall3_meet_02",
+		"text": "The Lumen. Older than the fleets. Held down by what they cut loose.",
+		"who": "narrator"
+	},
+	{
+		"id": "wall3_meet_03",
+		"text": "She's still breathing.",
+		"who": "nova"
+	},
+	{
+		"id": "wall3_meet_04",
+		"text": "Barely. I count 41 nets on her.",
+		"who": "pip"
+	},
+	{
+		"id": "wall3_meet_05",
+		"text": "Forty-one. One for every light that went out.",
+		"who": "nova"
+	},
+	{
+		"id": "wall3_meet_06",
+		"text": "Her net is the heaviest of all. One clean run, with everything we have.",
+		"who": "pip"
+	},
+	{
+		"id": "wall3_meet_07",
+		"text": "Hold on, big girl. We're coming through.",
+		"who": "nova"
+	},
+	{
+		"id": "ending_00",
+		"text": "So she cut. One net at a time.",
+		"who": "narrator"
+	},
+	{
+		"id": "ending_01",
+		"text": "O2 at 12%. We have to surface.",
+		"who": "pip"
+	},
+	{
+		"id": "ending_02",
+		"text": "Not without her.",
+		"who": "nova"
+	},
+	{
+		"id": "ending_03",
+		"text": "Then she saw the tag.",
+		"who": "narrator"
+	},
+	{
+		"id": "ending_04",
+		"text": "Boat 07... that's Mom's boat.",
+		"who": "nova"
+	},
+	{
+		"id": "ending_05",
+		"text": "All 41 nets on the Lumen came from Port Halo.",
+		"who": "narrator"
+	},
+	{
+		"id": "ending_06",
+		"text": "The last net fell away.",
+		"who": "narrator"
+	},
+	{
+		"id": "ending_07",
+		"text": "One song. A thousand lights came back.",
+		"who": "narrator"
+	},
+	{
+		"id": "ending_08",
+		"text": "The reef is safe. Where are we going?",
+		"who": "pip"
+	},
+	{
+		"id": "ending_09",
+		"text": "Up. To where the nets come from.",
+		"who": "nova"
+	},
+	{
+		"id": "ending_10",
+		"text": "Forty-one nets, Mom. Every one has our name on it.",
+		"who": "nova"
+	},
+	{
+		"id": "ending_11",
+		"text": "Boat 07. That one is mine.",
+		"who": "captain"
+	},
+	{
+		"id": "ending_12",
+		"text": "I gave that order a hundred times. I never once looked down.",
+		"who": "captain"
+	},
+	{
+		"id": "ending_13",
+		"text": "Ilo. Signal the fleet. From tonight, nothing gets cut loose.",
+		"who": "captain"
+	},
+	{
+		"id": "ending_14",
+		"text": "Aye, Captain. Every net comes home.",
+		"who": "ilo"
+	},
+	{
+		"id": "ending_15",
+		"text": "Port Halo's new rule: every net that goes down comes back up.",
+		"who": "narrator"
+	},
+	{
+		"id": "ending_16",
+		"text": "But a century of nets is still down there.",
+		"who": "narrator"
+	},
+	{
+		"id": "ending_17",
+		"text": "Then we keep diving.",
+		"who": "nova"
+	},
+	{
+		"id": "ending_18",
+		"text": "The dive continues. This time, you hold the cutter.",
+		"who": "narrator"
+	},
+	{
+		"id": "radio_start_0",
+		"text": "Reef Gate is 400 metres out. Build speed before you reach it.",
+		"who": "pip"
+	},
+	{
+		"id": "radio_start_1",
+		"text": "City Seal at 1,500 metres. Stay low between the towers.",
+		"who": "pip"
+	},
+	{
+		"id": "radio_start_2",
+		"text": "The Slope Curtain is at 2,800 metres. It gets dark past the Slope.",
+		"who": "pip"
+	},
+	{
+		"id": "radio_start_3",
+		"text": "She's out there. 3,600 metres. Let's bring her home.",
+		"who": "pip"
+	},
+	{
+		"id": "radio_start_4",
+		"text": "No walls left. Just nets. Let's see how far we get.",
+		"who": "pip"
+	},
+	{
+		"id": "radio_mom_0",
+		"text": "Nova, the ramp on Boat 07 is not a toy. Back before dark.",
+		"who": "radio"
+	},
+	{
+		"id": "radio_mom_1",
+		"text": "Pip's beacon says you're past the reef again. Your grandmother did this too, you know.",
+		"who": "radio"
+	},
+	{
+		"id": "radio_mom_2",
+		"text": "I logged every one of your tags myself. ...Be careful down there.",
+		"who": "radio"
+	},
+	{
+		"id": "radio_mom_3",
+		"text": "The whole dock is listening to your beacon tonight. Bring her home, Nova.",
+		"who": "radio"
+	},
+	{
+		"id": "radio_mom_4",
+		"text": "The fleet is hauling every net back. Dive safe, kiddo.",
+		"who": "radio"
+	},
+	{
+		"id": "radio_zone_1",
+		"text": "The Drowned City. Watch the rooftops.",
+		"who": "pip"
+	},
+	{
+		"id": "radio_zone_2",
+		"text": "The Slope. The ceiling closes in from here.",
+		"who": "pip"
+	},
+	{
+		"id": "radio_zone_3",
+		"text": "The Trench. Stay close to my light.",
+		"who": "pip"
+	},
+	{
+		"id": "radio_zone_4",
+		"text": "The Abyss. She's close. I can hear her.",
+		"who": "pip"
+	},
+	{
+		"id": "radio_animal_0",
+		"text": "Go on. Swim.",
+		"who": "nova"
+	},
+	{
+		"id": "radio_animal_1",
+		"text": "There you go.",
+		"who": "nova"
+	},
+	{
+		"id": "radio_animal_2",
+		"text": "You're free. Stay away from the nets.",
+		"who": "nova"
+	},
+	{
+		"id": "radio_animal_3",
+		"text": "One more home.",
+		"who": "nova"
+	},
+	{
+		"id": "radio_o2",
+		"text": "O2 low. Find a canister or I'm towing you up.",
+		"who": "pip"
+	},
+	{
+		"id": "radio_tip_puffer",
+		"text": "Puffer fish. Don't spook it: puffed up, it's all spikes. Go round, or go past before it puffs.",
+		"who": "pip"
+	},
+	{
+		"id": "radio_tip_piranha",
+		"text": "Piranhas? Out here? The nets drag them down from the river mouth. Keep your speed up and they can't bite.",
+		"who": "pip"
+	},
+	{
+		"id": "radio_tip_ray",
+		"text": "Electric ray. Watch it glow: when it flashes bright, stay out of the ring.",
+		"who": "pip"
+	}
+]

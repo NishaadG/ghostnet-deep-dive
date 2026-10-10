@@ -341,9 +341,10 @@ func _story_checks() -> void:
 			story_moment.emit(id)
 	if player.position.x > 1200.0 and Game.dives % 3 == 1:              # Mom calls in on every third dive
 		var walls_down := 4 if Game.story_complete else Balance.WALLS.size() - _walls_standing()
-		_radio_once("mom", "radio", Story.MOM_LINES[mini(walls_down, Story.MOM_LINES.size() - 1)])
+		var mom_line := mini(walls_down, Story.MOM_LINES.size() - 1)
+		_radio_once("mom", "radio", Story.MOM_LINES[mom_line], "radio_mom_%d" % mom_line)
 	if player.oxygen / stats["max_oxygen"] < 0.25 and player.position.y > 0.0:
-		_radio_once("o2", "pip", Story.LOW_O2_LINE)
+		_radio_once("o2", "pip", Story.LOW_O2_LINE, "radio_o2")
 
 
 func _walls_standing() -> int:
@@ -354,11 +355,12 @@ func _walls_standing() -> int:
 	return standing
 
 
-func _radio_once(key: String, who: String, text: String) -> void:
+# `voice` is the id of the spoken clip (assets/voice/<id>.mp3, see Story.voice_lines).
+func _radio_once(key: String, who: String, text: String, voice := "") -> void:
 	if _radio_said.has(key) or text == "":
 		return
 	_radio_said[key] = true
-	hud.show_radio(who, text)
+	hud.show_radio(who, text, voice)
 
 
 # ---- Results ----
@@ -401,7 +403,8 @@ func _on_net_touched(net: Net) -> void:
 		animals_freed += 1
 		player.add_oxygen(Balance.OXYGEN_FROM_ANIMAL)
 		if animals_freed <= 2:
-			_radio_once("animal_%d" % animals_freed, "nova", Story.ANIMAL_LINES[(Game.animals_freed_total + animals_freed) % Story.ANIMAL_LINES.size()])
+			var line := (Game.animals_freed_total + animals_freed) % Story.ANIMAL_LINES.size()
+			_radio_once("animal_%d" % animals_freed, "nova", Story.ANIMAL_LINES[line], "radio_animal_%d" % line)
 		player.vel += player.vel.normalized() * Balance.ANIMAL_BURST      # thank-you speed burst
 		Audio.play("pickup", -2.0, 1.3)
 	_bump(6.0)
@@ -446,7 +449,7 @@ func _hazard_warnings() -> void:
 		var tip := "tip_" + hazard.kind
 		if not Game.scene_seen(tip) and absf(hazard.position.x - player.position.x) < 900.0:
 			Game.seen_scenes.append(tip)              # saved with the slot: each warning plays once per save
-			_radio_once(tip, "pip", Story.HAZARD_LINES[hazard.kind])
+			_radio_once(tip, "pip", Story.HAZARD_LINES[hazard.kind], "radio_" + tip)
 
 
 func _on_pickup_touched(pickup: Pickup) -> void:
@@ -465,7 +468,7 @@ func _on_pickup_touched(pickup: Pickup) -> void:
 
 func _on_splashed(pos: Vector2, loss: float) -> void:
 	var stage := 4 if Game.next_wall() < 0 or Game.endless_mode else Game.next_wall()
-	_radio_once("start", "pip", Story.DIVE_START[stage])
+	_radio_once("start", "pip", Story.DIVE_START[stage], "radio_start_%d" % stage)
 	Audio.play("splash", 0.0, 1.0 - loss)
 	var burst := Art.particles(40, 0.9, 6.0, 16.0, Color(Art.ICE, 0.8), true)
 	burst.one_shot = true
@@ -501,7 +504,7 @@ func _zone_banner() -> void:
 		if player.position.x > 600.0:
 			hud.show_banner(Balance.ZONES[zone]["name"], "%d m" % Balance.ZONES[zone]["start_m"])
 			if zone > 0:
-				_radio_once("zone_%d" % zone, "pip", Story.ZONE_LINES[zone])
+				_radio_once("zone_%d" % zone, "pip", Story.ZONE_LINES[zone], "radio_zone_%d" % zone)
 
 
 func _on_player_ended(reason: String) -> void:

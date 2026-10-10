@@ -116,6 +116,7 @@ func _show_credits() -> void:
 		["Music: two original tracks synthesised by tools/make_music.py. Sound effects: original kit audio.", Art.ICE],
 		["Font: Poppins, SIL Open Font License.   Engine: Godot 4.6, GDScript only, no add-ons.", Art.ICE],
 		["AI tool disclosure: this game's scripts, art code, docs and tests were written with an AI coding assistant (Claude Code).", Art.AMBER],
+		["Voices: generated with ElevenLabs (elevenlabs.io), an AI text-to-speech service.", Art.AMBER],
 	]
 	for entry in lines:
 		var label := UiKit.label(entry[0], 17, false, entry[1])

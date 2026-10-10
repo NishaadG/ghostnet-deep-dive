@@ -1,6 +1,6 @@
 extends Node
 # Sound: one-shot effects from a small pool of players, two looping beds (ambient, booster),
-# and volume buses (Music, SFX) controlled from the settings screen.
+# spoken voice-over clips, and volume buses (Music, SFX, Voice) controlled from the settings screen.
 # Autoload name: Audio.
 
 const ONE_SHOTS := ["alarm", "pickup", "net_hit", "o2", "splash", "launch", "wall_break", "cut",
@@ -9,17 +9,21 @@ const POOL_SIZE := 10
 const MUSIC_TRACKS := ["music_menu", "music_dive"]
 const MUSIC_DB := -7.0         # level of the music track that is playing
 const SILENT_DB := -60.0
+const VOICE_DIR := "res://assets/voice/%s.mp3"
+const DUCK_DB := -9.0          # music drops this much while a voice is speaking
 
 var _streams := {}
 var _pool: Array[AudioStreamPlayer] = []
 var _loops := {}                 # name -> AudioStreamPlayer
 var _alarm_timer := 0.0
 var _current_music := ""
+var _voice: AudioStreamPlayer
+var _duck := 0.0               # current music dip in dB, eased toward DUCK_DB or 0
 
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
-	for bus_name in ["Music", "SFX"]:
+	for bus_name in ["Music", "SFX", "Voice"]:
 		if AudioServer.get_bus_index(bus_name) == -1:
 			AudioServer.add_bus()
 			var index := AudioServer.bus_count - 1
@@ -36,6 +40,9 @@ func _ready() -> void:
 	for track in MUSIC_TRACKS:
 		_make_loop(track, "Music", SILENT_DB)
 	_make_loop("boost_loop", "SFX", -4.0)
+	_voice = AudioStreamPlayer.new()
+	_voice.bus = "Voice"
+	add_child(_voice)
 	apply_volumes()
 	set_loop("ambient_loop", true)
 
@@ -50,6 +57,37 @@ func play(sound: String, volume_db := 0.0, pitch := 1.0) -> void:
 			player.pitch_scale = pitch
 			player.play()
 			return
+
+
+# ---- Voice-over (clips made by tools/make_voices.py) ----
+
+func has_voice(id: String) -> bool:
+	return id != "" and ResourceLoader.exists(VOICE_DIR % id)
+
+
+# Speak one line. A new line cuts off the previous one. Missing clips are simply silent.
+func play_voice(id: String) -> void:
+	_voice.stop()
+	if has_voice(id):
+		_voice.stream = load(VOICE_DIR % id)
+		_voice.play()
+
+
+func stop_voice() -> void:
+	_voice.stop()
+
+
+func voice_length(id: String) -> float:
+	if not has_voice(id):
+		return 0.0
+	return (load(VOICE_DIR % id) as AudioStream).get_length()
+
+
+func _process(delta: float) -> void:
+	var target := DUCK_DB if _voice.playing else 0.0
+	_duck = move_toward(_duck, target, delta * 30.0)            # quick dip, smooth return
+	var music := AudioServer.get_bus_index("Music")
+	AudioServer.set_bus_volume_db(music, linear_to_db(maxf(float(Game.settings["music"]), 0.0001)) + _duck)
 
 
 func set_loop(sound: String, on: bool) -> void:
@@ -92,9 +130,11 @@ func apply_volumes() -> void:
 	AudioServer.set_bus_volume_db(AudioServer.get_bus_index("Master"), linear_to_db(maxf(master, 0.0001)))
 	AudioServer.set_bus_volume_db(AudioServer.get_bus_index("Music"), linear_to_db(maxf(float(Game.settings["music"]), 0.0001)))
 	AudioServer.set_bus_volume_db(AudioServer.get_bus_index("SFX"), linear_to_db(maxf(float(Game.settings["sfx"]), 0.0001)))
+	AudioServer.set_bus_volume_db(AudioServer.get_bus_index("Voice"), linear_to_db(maxf(float(Game.settings["voice"]), 0.0001)))
 	# The ON/OFF switches mute a whole bus, so a slider can stay where the player left it.
 	AudioServer.set_bus_mute(AudioServer.get_bus_index("Music"), not bool(Game.settings["music_on"]))
 	AudioServer.set_bus_mute(AudioServer.get_bus_index("SFX"), not bool(Game.settings["sfx_on"]))
+	AudioServer.set_bus_mute(AudioServer.get_bus_index("Voice"), not bool(Game.settings["voice_on"]))
 
 
 func _make_loop(file_name: String, bus_name: String, volume_db: float) -> void:

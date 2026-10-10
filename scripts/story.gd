@@ -180,6 +180,41 @@ const SCENES := {
 }
 
 
+# ---- Voice-over ----
+# Every spoken line has an id; its clip is res://assets/voice/<id>.mp3, made by tools/make_voices.py
+# from the list below (tools/voice_lines.tscn writes it to tools/voice_lines.json). Captions are read
+# by the narrator. A line with no clip simply plays silent, so the game works before voices exist.
+
+static func beat_voice(scene_id: String, index: int) -> String:
+	return "%s_%02d" % [scene_id, index]
+
+
+# [{id, who, text}] for every cutscene line and every radio line.
+static func voice_lines() -> Array:
+	var lines := []
+	for scene_id in ORDER:
+		var beats := beats_of(scene_id)
+		for i in beats.size():
+			var beat: Dictionary = beats[i]
+			if beat.has("cap"):
+				lines.append({"id": beat_voice(scene_id, i), "who": "narrator", "text": beat["cap"]})
+			elif beat.has("say") and String(beat["say"]).replace(".", "").strip_edges() != "":    # "..." stays silent
+				lines.append({"id": beat_voice(scene_id, i), "who": beat["who"], "text": beat["say"]})
+	for i in DIVE_START.size():
+		lines.append({"id": "radio_start_%d" % i, "who": "pip", "text": DIVE_START[i]})
+	for i in MOM_LINES.size():
+		lines.append({"id": "radio_mom_%d" % i, "who": "radio", "text": MOM_LINES[i]})
+	for i in ZONE_LINES.size():
+		if ZONE_LINES[i] != "":
+			lines.append({"id": "radio_zone_%d" % i, "who": "pip", "text": ZONE_LINES[i]})
+	for i in ANIMAL_LINES.size():
+		lines.append({"id": "radio_animal_%d" % i, "who": "nova", "text": ANIMAL_LINES[i]})
+	lines.append({"id": "radio_o2", "who": "pip", "text": LOW_O2_LINE})
+	for kind in HAZARD_LINES:
+		lines.append({"id": "radio_tip_" + kind, "who": "pip", "text": HAZARD_LINES[kind]})
+	return lines
+
+
 static func title_of(id: String) -> String:
 	return String(SCENES[id]["title"])
 

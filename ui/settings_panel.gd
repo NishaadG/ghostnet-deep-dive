@@ -21,12 +21,13 @@ func _ready() -> void:
 	_add_slider("Master volume", "master", y, "")
 	_add_slider("Music", "music", y + 56.0, "music_on")
 	_add_slider("Sound effects", "sfx", y + 112.0, "sfx_on")
-	y += 176.0
+	_add_slider("Voices", "voice", y + 168.0, "voice_on")
+	y += 232.0
 	for entry in [["Fullscreen", "fullscreen"], ["Screen shake", "shake"], ["Touch controls", "touch"]]:
 		_add_toggle(entry[0], entry[1], y, 750.0)
 		y += 46.0
 	var help := UiKit.label("Controls:  A / D or Left / Right = tilt      Space = boost      Esc = pause\nTouch: hold the top half of the screen to tilt up, the bottom half to tilt down.", 14, false, Color(Art.ICE, 0.75))
-	help.position = Vector2(380, 470)
+	help.position = Vector2(380, 520)
 	help.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	help.size = Vector2(520, 70)
 	add_child(help)
