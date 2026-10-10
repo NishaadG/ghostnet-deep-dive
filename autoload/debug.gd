@@ -15,7 +15,9 @@ const TELEPORTS := [
 ]
 
 var main: Node                      # set by main.gd, so we can read the current screen
-var cheats := {"god": false, "oxygen": false, "fuel": false, "wall_kill": false, "no_creatures": false}
+# skip_scenes: while it is on, a wall's meeting cutscene does NOT pause the dive. Teleporting next to a wall used to
+# pause the game under the panel and look like a hang. Switch it off to test those scenes.
+var cheats := {"god": false, "oxygen": false, "fuel": false, "wall_kill": false, "no_creatures": false, "skip_scenes": true}
 var active := true                  # DEBUG mode (true) or the REAL game (false)
 var _panel: Node
 var _badge: CanvasLayer
@@ -45,6 +47,8 @@ func set_active(on: bool) -> void:
 		if _panel and is_instance_valid(_panel):
 			_panel.queue_free()
 			_panel = null
+	else:
+		cheats["skip_scenes"] = true                      # the safe default comes back with debug mode
 	_badge.visible = active
 	Game.settings["debug_mode"] = active
 	Game.save_settings()
@@ -62,6 +66,18 @@ func _build_badge() -> void:
 	_badge.add_child(label)
 	_badge.visible = active
 	add_child(_badge)
+
+
+# Emergency exit: unpause, drop any scene or menu on top, and put the clock back to normal speed.
+func unfreeze() -> void:
+	get_tree().paused = false
+	Engine.time_scale = 1.0
+	if main:
+		main._close_overlay()
+
+
+func is_frozen() -> bool:
+	return get_tree().paused or Engine.time_scale < 0.99
 
 
 func toggle_cheat(cheat: String) -> void:

@@ -40,7 +40,8 @@ func _process(_delta: float) -> void:
 
 
 func _info_text() -> String:
-	var text := "fps %d    screen %s    time x%.2f" % [Engine.get_frames_per_second(), Debug.screen_name(), Engine.time_scale]
+	var text := "fps %d    screen %s    time x%.2f%s" % [Engine.get_frames_per_second(), Debug.screen_name(), Engine.time_scale,
+			"    PAUSED" if get_tree().paused else ""]
 	var r := Debug.run()
 	if r:
 		var p := r.player
@@ -54,12 +55,14 @@ func _info_text() -> String:
 
 func _cheat_label(cheat: String) -> String:
 	return {"god": "God mode (no crashes, creatures harmless)", "oxygen": "Infinite O2", "fuel": "Infinite fuel",
-			"wall_kill": "Walls die in one hit", "no_creatures": "No sea creatures"}[cheat]
+			"wall_kill": "Walls die in one hit", "no_creatures": "No sea creatures",
+			"skip_scenes": "Skip wall cutscenes in dives"}[cheat]
 
 
 # ---- Layout ----
 
 func _build() -> void:
+	_grid([["UNFREEZE (unpause, close scenes)", Debug.unfreeze]])
 	_heading("TELEPORT (in a dive)")
 	var teleports := []
 	for entry in Debug.TELEPORTS:
@@ -68,7 +71,7 @@ func _build() -> void:
 	_grid(teleports)
 	_metres_row()
 	_heading("CHEATS")
-	for cheat in ["god", "oxygen", "fuel", "wall_kill", "no_creatures"]:
+	for cheat in ["god", "oxygen", "fuel", "wall_kill", "no_creatures", "skip_scenes"]:
 		_toggle(cheat)
 	_grid([["Fill O2 + fuel", Debug.fill_supplies], ["+400 speed", func(): Debug.add_speed(400.0)], ["Stop", Debug.stop]])
 	_heading("SPAWN IN FRONT")

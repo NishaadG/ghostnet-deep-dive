@@ -334,7 +334,7 @@ func _story_checks() -> void:
 	for i in walls:
 		var wall: NetWall = walls[i]
 		var id := "wall%d_meet" % i
-		if not wall.torn and not Game.scene_seen(id) and not _radio_said.has(id) \
+		if not wall.torn and not Game.scene_seen(id) and not _radio_said.has(id) and not Debug.is_on("skip_scenes") \
 				and player.position.x > wall.position.x - MEET_DISTANCE:
 			_radio_said[id] = true
 			story_moment.emit(id)

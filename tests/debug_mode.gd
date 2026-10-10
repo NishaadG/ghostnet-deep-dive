@@ -115,9 +115,18 @@ func _through_main() -> void:
 		check(dive.player.position.x / 10.0 > 300.0, "teleport to next wall moves Nova to it")
 		Debug.teleport_to_next_zone("drop")
 		Debug.fill_supplies()
+		# teleporting next to a wall must not freeze the dive under the panel (the skip_scenes cheat is on by default)
+		Debug.teleport(385.0)
+		for i in 30:
+			await get_tree().process_frame
+		check(not get_tree().paused, "teleporting beside a wall does not pause the dive")
+		Debug.cheats["skip_scenes"] = false
+		Game.seen_scenes.erase("wall0_meet")
 		Debug.play_scene("wall0_meet")                       # plays over the dive and pauses it
 		await get_tree().process_frame
 		check(get_tree().paused, "a scene played over a dive pauses it")
-		get_tree().paused = false
+		Debug.unfreeze()
+		check(not get_tree().paused and is_equal_approx(Engine.time_scale, 1.0), "unfreeze unpauses and restores the clock")
+	Debug.cheats["skip_scenes"] = true
 	main.queue_free()
 	await get_tree().process_frame
