@@ -4,6 +4,9 @@ extends Node2D
 # and reports a result dictionary through `finished` once Pip has towed her back up.
 
 signal finished(result: Dictionary)
+signal story_moment(scene_id: String)   # main pauses the dive and plays this cutscene, then resumes
+
+const MEET_DISTANCE := 650.0   # px before a wall where its first-meeting cutscene starts
 
 const TOW_DELAY := 1.6   # seconds between the run ending and handing over to the next screen
 const DARKNESS_SHADER := """
@@ -41,12 +44,14 @@ var plastic := 0
 var wall_bonus := 0
 var wall_info := {}                   # filled when a wall stops the run: name, hp before/after, max
 var lumen_freed := false
+var walls_torn: Array[int] = []       # walls torn open on this dive: main plays their story scenes after it
 var ended := false
 var _tow_timer := 0.0
 var _shake := 0.0
 var _zone := -1
 var _darkness: ColorRect
 var _bubbles: CPUParticles2D
+var _radio_said := {}                 # radio lines already used this dive, so each plays once
 
 
 func _ready() -> void:
@@ -113,6 +118,7 @@ func _process(delta: float) -> void:
 		spawner.update(player)
 		_spawn_walls()
 		_check_walls()
+		_story_checks()
 		_zone_banner()
 		max_depth_m = maxf(max_depth_m, player.position.y / Balance.PX_PER_M)
 		top_speed = maxf(top_speed, player.vel.length())
@@ -175,6 +181,7 @@ func _add_whale(wall_x: float, wall: NetWall) -> void:
 	whale.position = Vector2(wall_x + 760.0, (wall.y_top + wall.y_bottom) / 2.0)
 	whale.z_index = -1
 	whale.lit = 1.0 if wall.torn else 0.0
+	whale.wrapped = 0.0 if wall.torn else 1.0
 	add_child(whale)
 
 
@@ -199,6 +206,7 @@ func _hit_wall(index: int, wall: NetWall) -> void:
 	if wall.torn:
 		Audio.play("wall_break")
 		wall_bonus += int(Balance.WALLS[index]["bonus"])
+		walls_torn.append(index)
 		player.vel *= Balance.WALL_SPEED_KEEP
 		hud.show_caption("%s torn open!  +%d tags" % [Balance.WALLS[index]["name"], Balance.WALLS[index]["bonus"]], 3.0)
 		if index == Balance.WALLS.size() - 1:
@@ -220,7 +228,42 @@ func _free_the_lumen() -> void:
 	get_tree().create_timer(1.0, true, false, true).timeout.connect(func(): Engine.time_scale = 1.0)
 	if whale:
 		create_tween().tween_property(whale, "lit", 1.0, 2.5)
+		create_tween().tween_property(whale, "wrapped", 0.0, 1.5)
 	get_tree().create_timer(3.5, true, false, true).timeout.connect(func(): player.finish("lumen"))
+
+
+# ---- Story during the dive ----
+
+# The first time a wall comes into view, ask main to pause and play its meeting scene.
+# Radio lines never pause anything: they appear in a small box under the oxygen gauge.
+func _story_checks() -> void:
+	for i in walls:
+		var wall: NetWall = walls[i]
+		var id := "wall%d_meet" % i
+		if not wall.torn and not Game.scene_seen(id) and not _radio_said.has(id) \
+				and player.position.x > wall.position.x - MEET_DISTANCE:
+			_radio_said[id] = true
+			story_moment.emit(id)
+	if player.position.x > 1200.0 and Game.dives % 3 == 1:              # Mom calls in on every third dive
+		var walls_down := 4 if Game.story_complete else Balance.WALLS.size() - _walls_standing()
+		_radio_once("mom", "radio", Story.MOM_LINES[mini(walls_down, Story.MOM_LINES.size() - 1)])
+	if player.oxygen / stats["max_oxygen"] < 0.25 and player.position.y > 0.0:
+		_radio_once("o2", "pip", Story.LOW_O2_LINE)
+
+
+func _walls_standing() -> int:
+	var standing := 0
+	for i in Balance.WALLS.size():
+		if not Game.wall_broken(i):
+			standing += 1
+	return standing
+
+
+func _radio_once(key: String, who: String, text: String) -> void:
+	if _radio_said.has(key) or text == "":
+		return
+	_radio_said[key] = true
+	hud.show_radio(who, text)
 
 
 # ---- Results ----
@@ -238,6 +281,7 @@ func make_result() -> Dictionary:
 		"wall_bonus": wall_bonus,
 		"wall_info": wall_info,
 		"lumen_freed": lumen_freed,
+		"walls_torn": walls_torn,
 		"fleet_cut": spawner.loose_nets_up_to(player.position.x),
 		"tags": tags_so_far(),
 	}
@@ -256,6 +300,8 @@ func _on_net_touched(net: Net) -> void:
 	if net.has_animal:
 		animals_freed += 1
 		player.add_oxygen(Balance.OXYGEN_FROM_ANIMAL)
+		if animals_freed <= 2:
+			_radio_once("animal_%d" % animals_freed, "nova", Story.ANIMAL_LINES[(Game.animals_freed_total + animals_freed) % Story.ANIMAL_LINES.size()])
 		player.vel += player.vel.normalized() * Balance.ANIMAL_BURST      # thank-you speed burst
 		Audio.play("pickup", -2.0, 1.3)
 	_bump(6.0)
@@ -277,6 +323,8 @@ func _on_pickup_touched(pickup: Pickup) -> void:
 
 
 func _on_splashed(pos: Vector2, loss: float) -> void:
+	var stage := 4 if Game.next_wall() < 0 or Game.endless_mode else Game.next_wall()
+	_radio_once("start", "pip", Story.DIVE_START[stage])
 	Audio.play("splash", 0.0, 1.0 - loss)
 	var burst := Art.particles(40, 0.9, 6.0, 16.0, Color(Art.ICE, 0.8), true)
 	burst.one_shot = true
@@ -311,6 +359,8 @@ func _zone_banner() -> void:
 		_zone = zone
 		if player.position.x > 600.0:
 			hud.show_banner(Balance.ZONES[zone]["name"], "%d m" % Balance.ZONES[zone]["start_m"])
+			if zone > 0:
+				_radio_once("zone_%d" % zone, "pip", Story.ZONE_LINES[zone])
 
 
 func _on_player_ended(reason: String) -> void:

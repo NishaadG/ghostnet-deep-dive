@@ -27,10 +27,25 @@ func _ready() -> void:
 					"plastic": 11, "wall_bonus": 0, "fleet_cut": 9, "tags": 41, "lumen_freed": false,
 					"wall_info": {"name": "Reef Gate", "before": 1100.0, "after": 640.0, "max": 1400.0}}
 			screen = r
-		"cards":
-			var c := StoryCards.new()
-			c.setup(StoryCards.INTRO)
+		"cutscene":                          # -- screen=cutscene scene=intro beat=3
+			var c := Cutscene.new()
+			var id := "intro"
+			var beat := 0
+			for arg in OS.get_cmdline_user_args():
+				if arg.begins_with("scene="):
+					id = arg.substr(6)
+				if arg.begins_with("beat="):
+					beat = int(arg.substr(5))
+			c.setup(id)
 			screen = c
+			add_child(screen)
+			for i in beat:
+				c._typed = 9999.0
+				c._auto_wait = -1.0
+				c._next()
+			return
+		"gallery":
+			screen = StoryGallery.new()
 		"settings":
 			screen = SettingsPanel.new()
 		"pause":

@@ -6,11 +6,14 @@ extends Node2D
 var player: Player
 var spawner: Spawner
 var stats: Dictionary
+var alarm := false        # cutscenes have no player: they set this to show the red low-oxygen eye
 var _age := 0.0
 
 
 func _process(delta: float) -> void:
-	if player == null:
+	if player == null:                # in a cutscene: the scene moves Pip, we only animate
+		_age += delta
+		queue_redraw()
 		return
 	_age += delta
 	var target := player.position + Vector2(-70, -55) + Vector2(0, sin(_age * 2.5) * 8.0)
@@ -20,6 +23,8 @@ func _process(delta: float) -> void:
 
 
 func oxygen_fraction() -> float:
+	if player == null:
+		return 0.1 if alarm else 1.0
 	return player.oxygen / stats["max_oxygen"]
 
 

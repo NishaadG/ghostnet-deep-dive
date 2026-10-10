@@ -14,9 +14,11 @@ var nets_cut_total := 0
 var wall_hp := {}              # wall index (as text) -> remaining HP; missing = untouched
 var story_complete := false    # true after the Lumen is freed; unlocks Endless mode
 var endless_mode := false
+var seen_scenes: Array = []    # cutscene ids this slot has already played (see Story)
 
 var settings := {"master": 0.8, "music": 0.7, "sfx": 0.9, "music_on": true, "sfx_on": true,
-		"fullscreen": false, "shake": true, "touch": false, "last_slot": 0}
+		"fullscreen": false, "shake": true, "touch": false, "last_slot": 0,
+		"gallery": []}             # every cutscene seen in any slot: the title's Story screen can replay them
 var save_enabled := true       # tests switch this off so they never touch a real save
 var save_dir := "user://"      # tests point this at a throwaway folder name prefix
 var ui_theme := Theme.new()
@@ -54,6 +56,22 @@ func next_wall() -> int:
 		if not wall_broken(i):
 			return i
 	return -1
+
+
+# ---- Story scenes ----
+
+func scene_seen(id: String) -> bool:
+	return id in seen_scenes
+
+
+func mark_scene_seen(id: String) -> void:
+	if not id in seen_scenes:
+		seen_scenes.append(id)
+		save_game()
+	var gallery: Array = settings["gallery"]
+	if not id in gallery:
+		gallery.append(id)
+		save_settings()
 
 
 # ---- Upgrades ----
@@ -130,7 +148,7 @@ func save_game() -> void:
 	var data := {
 		"tags": tags, "levels": levels, "wall_hp": wall_hp, "best_distance": best_distance,
 		"dives": dives, "animals_freed": animals_freed_total, "nets_cut": nets_cut_total,
-		"story_complete": story_complete, "endless_mode": endless_mode,
+		"story_complete": story_complete, "endless_mode": endless_mode, "seen_scenes": seen_scenes,
 		"saved_at": Time.get_datetime_string_from_system(),
 	}
 	var file := FileAccess.open(slot_path(slot), FileAccess.WRITE)
@@ -148,6 +166,7 @@ func _clear_progress() -> void:
 	nets_cut_total = 0
 	story_complete = false
 	endless_mode = false
+	seen_scenes = []
 
 
 func _apply(data: Dictionary) -> void:
@@ -158,6 +177,9 @@ func _apply(data: Dictionary) -> void:
 	nets_cut_total = int(data.get("nets_cut", 0))
 	story_complete = bool(data.get("story_complete", false))
 	endless_mode = bool(data.get("endless_mode", false)) and story_complete
+	seen_scenes = []
+	for id in data.get("seen_scenes", []):
+		seen_scenes.append(String(id))
 	levels = {}
 	for id in data.get("levels", {}):
 		levels[id] = int(data["levels"][id])     # JSON gives floats; levels are whole numbers
@@ -193,7 +215,7 @@ func apply_settings() -> void:
 		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN if settings["fullscreen"] else DisplayServer.WINDOW_MODE_WINDOWED)
 
 
-# ---- Debug keys (main.gd calls these on F1 to F4) ----
+# ---- Debug keys (main.gd calls these on F1 to F5) ----
 
 func debug_reset() -> void:
 	_clear_progress()
@@ -212,6 +234,12 @@ func debug_mid_save() -> void:
 	dives = maxi(dives, 12)
 	animals_freed_total = maxi(animals_freed_total, 6)
 	save_game()
+
+
+# Every cutscene shows up in the title's STORY screen (handy for showing the story to a jury).
+func debug_unlock_scenes() -> void:
+	settings["gallery"] = Story.ORDER.duplicate()
+	save_settings()
 
 
 func debug_unlock_endless() -> void:

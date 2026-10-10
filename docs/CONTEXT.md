@@ -15,7 +15,10 @@ Repo: https://github.com/NishaadG/ghostnet-deep-dive (public). Collaborator: Var
 
 Everything below is built, committed, and the tests pass.
 
-- Title screen, 3 save slots, settings, credits, pause menu, intro and ending story cards.
+- Title screen, 3 save slots, settings, credits, pause menu, a STORY gallery to rewatch scenes.
+- Cutscenes (`scripts/story.gd` holds all the text): intro (comic pages 1 to 3), a meeting scene that pauses the dive at each net wall,
+  a scene after each wall is torn, the ending (pages 5 to 8), and a Net Return scene. Radio lines from Pip and Captain Vale during dives.
+  The fleet tags escalate: Boat 11 (wall 1), a scratched "Boat 0_" (wall 2), then BOAT 07 · CAPT. VALE on the Lumen.
 - The dive: ramp launch, air arc, underwater flight model, boost, oxygen timer, floor/ceiling collision, camera, zones (Reef, Drowned City, Slope, Trench, Abyss).
 - Nets (with trapped animals), pickups along glide arcs, plastic, Pip the drone, 4 persistent net walls (HP saved between dives), the whale ending, Endless mode.
 - Workshop (shop): 3 gear slots with 6 named tiers each (Craft, Booster, Cutter), 5 tuning upgrades, Net Return ("Port Halo" tab), live rig preview, journey/wall progress.
@@ -27,7 +30,8 @@ Everything below is built, committed, and the tests pass.
 ## 3. Decisions the user made (do not undo)
 
 - Look: **neon vector, glowing**, everything procedural. The kit's AI-looking sprites and story images were deliberately dropped (they remain in `assets/` and `comic_assets/` for the comic only).
-- Characters/dialogue: **a middle ground**. A small glowing-visor diver (Nova) and drone (Pip); no portraits. Text only at key moments: 3-card intro, a harbourmaster line that changes with Net Return, wall captions, 3-card ending.
+- Characters/dialogue: originally a middle ground (3-card intro and ending). **Later the user asked for real cutscenes and a deeper story**:
+  drawn-in-code scenes with Captain Vale, Ilo the deckhand and the harbourmaster as standing figures (no detailed portraits).
 - Gear: Learn-to-Fly style tiers with underwater names (not "glider"): Kickboard to Leviathan, Flipper Pump to Torpedo Drive, Wire Snips to Reef Saw.
 - Length target: about **25 to 35 dives** to finish the story. First dive earns 8 to 15 tags. Wall 1 around dive 5. Money was originally far too easy, so keep it scarce.
 - The user is short on time and prefers you decide small things yourself and report afterward.
@@ -43,7 +47,7 @@ godot --headless --path . res://tests/economy.tscn -- clumsy=0.5 runs=2   # bala
 godot --headless --path . res://tests/zones.tscn          # how far the bot gets with fixed kits and no walls
 godot --headless --path . --export-release Web build/web/index.html
 ```
-Screenshots (needs a real window, not headless): `godot --path . res://tests/menu_shot.tscn --write-movie out.png --fixed-fps 30 --quit-after 60 -- screen=workshop` (also `title`, `slots`, `results`, `cards`, `settings`, `pause`; add `tab=1` or `tab=2` for the workshop tabs). `res://tests/shots.tscn ... -- x=17000 touch` flies the bot from a chosen distance (x is metres times ten) and `res://tests/rigshot.tscn` shows every gear tier. Read the PNGs: it is the only way to judge visuals without a human.
+Screenshots (needs a real window, not headless): `godot --path . res://tests/menu_shot.tscn --write-movie out.png --fixed-fps 30 --quit-after 60 -- screen=workshop` (also `title`, `slots`, `results`, `gallery`, `settings`, `pause`, and `cutscene scene=intro beat=3` for any beat of any scene; add `tab=1` or `tab=2` for the workshop tabs). `res://tests/shots.tscn ... -- x=17000 touch` flies the bot from a chosen distance (x is metres times ten) and `res://tests/rigshot.tscn` shows every gear tier. Read the PNGs: it is the only way to judge visuals without a human.
 
 Debug keys (also in the web build): F1 reset slot, F2 +500 tags, F3 mid-game save, F4 unlock Endless.
 
@@ -62,7 +66,8 @@ Tests write to throwaway files (`Game.save_dir = "user://test_"`, `Game.save_ena
 | `scripts/spawner.gd` | Nets, pickups, plastic; Net Return scales net density here |
 | `scripts/*_art.gd`, `diver_rig.gd`, `net.gd`, `pickup.gd`, `animal.gd`, `whale.gd`, `net_wall.gd`, `pip.gd`, `backdrop.gd`, `launch_site.gd` | Drawn-in-code visuals |
 | `scripts/main.gd` | Screen switcher, pause, rotate notice, music per screen |
-| `ui/` | title, slot_select, workshop (+ shop_rows), results, story_cards, settings_panel, pause_menu, hud, ui_kit |
+| `ui/` | title, slot_select, workshop (+ shop_rows), results, cutscene, story_gallery, settings_panel, pause_menu, hud, ui_kit |
+| `scripts/story.gd`, `cutscene_stage.gd`, `figure.gd` | Story text as data; the cutscene stage (sets and actions); dock characters |
 | `tests/` | smoke, progression, economy, zones and screenshot helpers |
 | `tools/make_music.py` | Regenerates the two music WAVs (numpy) |
 | `docs/` | `CODE_TOUR.md` (for the jury), `ITCH.md` (publishing), this file |
@@ -96,7 +101,8 @@ The full dive flow and the physics in words are in `docs/CODE_TOUR.md`.
 - The test bot is better than most people. Real players are probably slower, so ask for finish times and nudge `COST_SCALE`.
 - Pip's level 3 arrow (to the next O2) is implemented but not play-tested.
 - Endless mode is unlocked after the Lumen is freed; its late-game balance (drops grow 5% every 500 m, extra upgrade levels cost 1.6x) has not been simulated.
-- The ending cards and the whale-freed slow motion were only tested by simulation.
+- The whale-freed slow motion was only tested by simulation. The cutscenes are checked by tests and screenshots; ask someone to read
+  them all once (F5 unlocks every scene in the STORY screen) and trim any line that drags.
 - Saves on itch.io live in browser storage (cleared with site data).
 
 ## 9. Git

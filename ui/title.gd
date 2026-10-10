@@ -6,6 +6,7 @@ extends Control
 signal play_pressed
 signal continue_pressed(slot: int)
 signal settings_pressed
+signal story_pressed
 signal quit_pressed
 
 var _logo: Control
@@ -45,15 +46,15 @@ func _build_buttons() -> void:
 	if last > 0 and not Game.slot_summary(last).is_empty():
 		names.append("CONTINUE   slot %d" % last)
 		actions.append(func(): continue_pressed.emit(last))
-	names.append_array(["PLAY", "SETTINGS", "CREDITS"])
-	actions.append_array([func(): play_pressed.emit(), func(): settings_pressed.emit(), _show_credits])
+	names.append_array(["PLAY", "STORY", "SETTINGS", "CREDITS"])
+	actions.append_array([func(): play_pressed.emit(), func(): story_pressed.emit(), func(): settings_pressed.emit(), _show_credits])
 	if not OS.has_feature("web"):
 		names.append("QUIT")
 		actions.append(func(): quit_pressed.emit())
 	for i in names.size():
 		var primary := i == 0
-		var button := UiKit.button(names[i], Vector2(340, 56), Art.CYAN if i < 3 else Art.MAGENTA, primary, 24)
-		button.position = Vector2(470, 330 + i * 68)
+		var button := UiKit.button(names[i], Vector2(340, 50), Art.CYAN if i < names.size() - 1 else Art.MAGENTA, primary, 22)
+		button.position = Vector2(470, 318 + i * 58)
 		button.pressed.connect(actions[i])
 		add_child(button)
 

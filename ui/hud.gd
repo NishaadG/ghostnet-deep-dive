@@ -11,6 +11,12 @@ var _banner_t := 0.0
 var _caption_text := ""
 var _caption_t := 0.0
 var _towing_reason := ""
+var _radio_who := ""
+var _radio_text := ""
+var _radio_t := 0.0
+var _radio_queued := []           # one waiting line [who, text], so a new line never cuts one off mid-sentence
+const RADIO_TIME := 6.0
+const RADIO_MIN := 3.0            # a line stays at least this long before the next replaces it
 
 
 func _ready() -> void:
@@ -29,6 +35,16 @@ func show_caption(text: String, seconds: float) -> void:
 	_caption_t = seconds
 
 
+# A radio line from Pip, Nova or Captain Vale (see Story). It types out, stays, then fades.
+func show_radio(who: String, text: String) -> void:
+	if _radio_t > RADIO_TIME - RADIO_MIN:
+		_radio_queued = [who, text]
+		return
+	_radio_who = who
+	_radio_text = text
+	_radio_t = RADIO_TIME
+
+
 func show_towing(reason: String) -> void:
 	_towing_reason = reason
 
@@ -36,6 +52,11 @@ func show_towing(reason: String) -> void:
 func _process(delta: float) -> void:
 	_banner_t = maxf(0.0, _banner_t - delta)
 	_caption_t = maxf(0.0, _caption_t - delta)
+	_radio_t = maxf(0.0, _radio_t - delta)
+	if not _radio_queued.is_empty() and _radio_t <= RADIO_TIME - RADIO_MIN:
+		var next: Array = _radio_queued
+		_radio_queued = []
+		show_radio(next[0], next[1])
 	queue_redraw()
 
 
@@ -52,6 +73,7 @@ func _draw() -> void:
 	_journey_strip(maxf(0.0, player.position.x / Balance.PX_PER_M))
 	_banner()
 	_caption()
+	_radio()
 	if _towing_reason != "":
 		_towing()
 
@@ -149,6 +171,20 @@ func _caption() -> void:
 	var rect := Rect2(290, 560, 700, 60)
 	draw_style_box(UiKit.glass(Art.AMBER, 0.7 * a), rect)
 	draw_string(Game.font_bold, rect.position + Vector2(0, 38), _caption_text, HORIZONTAL_ALIGNMENT_CENTER, rect.size.x, 24, Color(Art.ICE, a))
+
+
+func _radio() -> void:
+	if _radio_t <= 0.0 or _towing_reason != "":
+		return
+	var a := clampf(minf(_radio_t, RADIO_TIME - _radio_t) * 4.0, 0.0, 1.0)
+	var speaker: Dictionary = Story.SPEAKERS.get(_radio_who, Story.SPEAKERS["pip"])
+	var color: Color = speaker["color"]
+	var rect := Rect2(20, 126, 470, 82)
+	draw_style_box(UiKit.glass(color, 0.7 * a), rect)
+	draw_circle(rect.position + Vector2(18, 20), 4.0 + sin(Time.get_ticks_msec() / 120.0), Color(color, a))   # "on air" light
+	draw_string(Game.font_bold, rect.position + Vector2(30, 26), String(speaker["name"]), HORIZONTAL_ALIGNMENT_LEFT, -1, 13, Color(color, a))
+	var shown := int((RADIO_TIME - _radio_t) * 45.0)
+	draw_multiline_string(Game.font, rect.position + Vector2(14, 50), _radio_text.substr(0, shown), HORIZONTAL_ALIGNMENT_LEFT, 444, 16, 2, Color(Art.ICE, a))
 
 
 func _towing() -> void:
