@@ -27,7 +27,7 @@ Every dive is scored for style and ranked D, C, B, A or S. Style points add a sm
 | Perfect splash | Hit the water at 40 to 70 degrees nose-down after airtime or a flip. |
 | Loop | Hold nose-up (`A`) at speed with room above and below to loop 360 degrees. |
 | Floor grind | Skim the seabed at a shallow angle for half a second or more. |
-| Canyon / drop clear | Cross a Drowned City street canyon, or plunge down a Slope or Trench drop, without touching rock. |
+| Slope clear | Fly down one of the long gradual slopes of the city, Slope or Trench without touching rock. |
 | Net chain | Cut nets within 2.5 s of each other. The multiplier grows (up to x3) and boosts every trick while the chain lasts. |
 
 Tip: dive in off the ramp with the nose down (a steep entry keeps all your speed), plunge for speed, then pull up and glide.
@@ -53,10 +53,10 @@ Sea creatures get in the way (they cannot be cut):
 
 Press **F9** (or the `` ` `` key) on any screen to open the developer panel on the right side of the screen. It has:
 
-- **Teleport** (in a dive): jump to the start, each wall, each zone, the next wall, the next canyon or drop, or any distance you type in metres. Going backwards rebuilds the same trench.
+- **Teleport** (in a dive): jump to the start, each wall, each zone, the next wall, the next long slope, or any distance you type in metres. Going backwards rebuilds the same trench.
 - **Cheats:** God mode (no crash or rest end, sea creatures harmless), infinite O2, infinite fuel, walls that die in one hit, no sea creatures, fill supplies, +400 speed, stop.
 - **Spawn in front:** a net, a net with an animal, an O2 canister, a fuel cell, a piranha school, a puffer fish, an electric ray.
-- **Trick tests:** add style points, flips, a loop, a net chain, a grind, a canyon clear (to check pop-ups and the results panel).
+- **Trick tests:** add style points, flips, a loop, a net chain, a grind, a slope clear (to check pop-ups and the results panel).
 - **Story scenes:** play any of the 10 cutscenes, over the dive or as a full screen.
 - **Game state:** +500 tags, max all gear, tear or restore all walls, unlock Endless and scenes, reset the slot, load the mid-game save, jump to the title, workshop or a new dive.
 - A live readout of fps, position, speed, oxygen, zone and style.

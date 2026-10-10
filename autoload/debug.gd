@@ -104,7 +104,7 @@ func teleport(metres: float) -> void:
 		r.debug_teleport(metres)
 
 
-# Jump a bit before the next canyon or drop in front of Nova.
+# Jump a bit before the next long slope in front of Nova.
 func teleport_to_next_zone(kind: String) -> void:
 	var r := run()
 	if r == null:
@@ -172,8 +172,8 @@ func style_event(kind: String) -> void:
 				r.style.net_cut()
 		"grind":
 			r.style.grind_ended(1.5)
-		"canyon":
-			r.style.zone_cleared("canyon", 900.0)
+		"slope":
+			r.style.slope_cleared(1500.0)
 
 
 # ---- Game state (works on every screen) ----

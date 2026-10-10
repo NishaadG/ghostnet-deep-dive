@@ -26,7 +26,7 @@ func _ready() -> void:
 			r.result = {"reason": "wall", "distance_m": 412.0, "max_depth_m": 88.0, "top_speed": 760.0, "nets_cut": 5, "animals_freed": 2,
 					"plastic": 11, "wall_bonus": 0, "fleet_cut": 9, "tags": 41, "lumen_freed": false,
 					"wall_info": {"name": "Reef Gate", "before": 1100.0, "after": 640.0, "max": 1400.0},
-					"style": {"total": 742, "rank": "A", "best_chain": 4, "tags": 4, "lines": [["Airtime", 1, 130], ["Flips", 1, 150], ["Perfect splash", 1, 100], ["Grinds", 2, 160], ["Canyon clears", 1, 142], ["Net chain", 3, 60]]}}
+					"style": {"total": 742, "rank": "A", "best_chain": 4, "tags": 4, "lines": [["Airtime", 1, 130], ["Flips", 1, 150], ["Perfect splash", 1, 100], ["Grinds", 2, 160], ["Slope clears", 1, 142], ["Net chain", 3, 60]]}}
 			screen = r
 		"cutscene":                          # -- screen=cutscene scene=intro beat=3
 			var c := Cutscene.new()

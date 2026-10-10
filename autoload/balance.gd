@@ -38,8 +38,7 @@ const FLIP_POINTS := 150.0
 const PERFECT_SPLASH_POINTS := 100.0
 const LOOP_POINTS := 250.0
 const GRIND_POINTS_PER_S := 80.0
-const CANYON_POINTS := 120.0
-const DROP_POINTS := 80.0
+const SLOPE_POINTS := 100.0          # flying down a long slope without touching rock
 const CHAIN_WINDOW := 2.5            # seconds between net cuts that keep a chain alive
 const CHAIN_STEP := 0.25             # multiplier added per net in the chain
 const CHAIN_MAX_MULT := 3.0
@@ -99,7 +98,7 @@ const CLOSE_CALL_POINTS := 60.0      # style points for blasting through a piran
 # ---- Net walls: the story goals. HP persists between dives. ----
 # damage on contact = speed * ballast_mult * cutter_mult
 const WALLS := [
-	{"at_m": 400, "hp": 1500.0, "bonus": 25, "name": "Reef Gate"},
+	{"at_m": 400, "hp": 1200.0, "bonus": 25, "name": "Reef Gate"},
 	{"at_m": 1500, "hp": 3800.0, "bonus": 60, "name": "City Seal"},
 	{"at_m": 2800, "hp": 9500.0, "bonus": 110, "name": "Slope Curtain"},
 	{"at_m": 3600, "hp": 19000.0, "bonus": 200, "name": "The Lumen's Net"},
@@ -124,7 +123,7 @@ const ZONES := [
 	{"id": "slope", "dark": 0.3, "name": "The Slope", "start_m": 1500, "corridor": 450.0,
 		"water_top": Color("0a2f66"), "water_bottom": Color("040f2e"), "rock": Color("0b1a38"),
 		"accent": Color("7a8cff"), "tint": Color("b9c8ff")},
-	{"id": "trench", "dark": 0.84, "name": "The Trench", "start_m": 2800, "corridor": 520.0,
+	{"id": "trench", "dark": 0.76, "name": "The Trench", "start_m": 2800, "corridor": 520.0,
 		"water_top": Color("050d24"), "water_bottom": Color("01040f"), "rock": Color("060d1f"),
 		"accent": Color("b66bff"), "tint": Color("8f9bd6")},
 	{"id": "abyss", "dark": 0.7, "name": "The Abyss", "start_m": 3600, "corridor": 600.0,

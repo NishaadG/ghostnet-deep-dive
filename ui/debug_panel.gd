@@ -64,8 +64,7 @@ func _build() -> void:
 	var teleports := []
 	for entry in Debug.TELEPORTS:
 		teleports.append([str(entry[0]), func(): Debug.teleport(float(entry[1]))])
-	teleports.append_array([["Next wall", Debug.teleport_to_next_wall], ["Next canyon", func(): Debug.teleport_to_next_zone("canyon")],
-			["Next drop", func(): Debug.teleport_to_next_zone("drop")]])
+	teleports.append_array([["Next wall", Debug.teleport_to_next_wall], ["Next long slope", func(): Debug.teleport_to_next_zone("drop")]])
 	_grid(teleports)
 	_metres_row()
 	_heading("CHEATS")
@@ -80,7 +79,7 @@ func _build() -> void:
 	_heading("TRICK TESTS")
 	_grid([["+500 style", func(): Debug.style_event("points")], ["2 flips", func(): Debug.style_event("flip")],
 			["Loop", func(): Debug.style_event("loop")], ["Net chain x4", func(): Debug.style_event("chain")],
-			["Grind", func(): Debug.style_event("grind")], ["Canyon clear", func(): Debug.style_event("canyon")]])
+			["Grind", func(): Debug.style_event("grind")], ["Slope clear", func(): Debug.style_event("slope")]])
 	_heading("STORY SCENES")
 	var scenes := []
 	for id in Story.ORDER:

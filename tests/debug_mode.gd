@@ -112,7 +112,7 @@ func _through_main() -> void:
 	if dive:
 		Debug.teleport_to_next_wall()
 		check(dive.player.position.x / 10.0 > 300.0, "teleport to next wall moves Nova to it")
-		Debug.teleport_to_next_zone("canyon")
+		Debug.teleport_to_next_zone("drop")
 		Debug.fill_supplies()
 		Debug.play_scene("wall0_meet")                       # plays over the dive and pauses it
 		await get_tree().process_frame

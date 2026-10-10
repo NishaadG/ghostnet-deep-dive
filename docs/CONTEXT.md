@@ -31,7 +31,7 @@ Everything below is built, committed, and the tests pass.
 
 ## 2b. Evaluation system (branch `feature/evaluation`)
 
-Style points and ranks, in `scripts/style_score.gd` (scoring rules, ranks, tag bonus) fed by `Player` signals (`landed`, `flipped`, `looped`, `grind_ended`) and `Run` (net chain, canyon/drop zones from `Terrain.trick_zones`). The air only exists near the start (the cave ceiling closes it), so flips/airtime are launch-only; the launch ramp is a ski-jump curve (`Balance.ramp_point`) to give about a second of airtime. Underwater tricks are loops (hold nose-up at speed), floor grinds, canyon/drop clears and net chains. All numbers are in `balance.gd` (section "Tricks"). The results screen shows an EVALUATION panel; `Game.best_style` / `best_rank` are saved per slot. Tests: `tests/style.tscn`.
+Style points and ranks, in `scripts/style_score.gd` (scoring rules, ranks, tag bonus) fed by `Player` signals (`landed`, `flipped`, `looped`, `grind_ended`) and `Run` (net chain, long-slope zones from `Terrain.trick_zones`). The air only exists near the start (the cave ceiling closes it), so flips/airtime are launch-only; the launch ramp is a ski-jump curve (`Balance.ramp_point`) to give about a second of airtime. Underwater tricks are loops (hold nose-up at speed), floor grinds, slope clears and net chains. All numbers are in `balance.gd` (section "Tricks"). The results screen shows an EVALUATION panel; `Game.best_style` / `best_rank` are saved per slot. Tests: `tests/style.tscn`.
 
 ## 2c. Debug mode (branch `feature/debug-mode`)
 

@@ -82,6 +82,6 @@ lets the diver show exactly the gear you own (`GearArt` draws the same shapes on
 ## 7. Evaluation (style score)
 
 `style_score.gd` turns tricks into points, a rank and a small tag bonus. `Player` only reports what happened (`flipped`, `landed`, `looped`, `grind_ended`);
-`Run` wires those signals to a `StyleScore` and adds net chains (`_on_net_touched`) and canyon/drop clears (`_check_trick_zones`, using zones recorded by `Terrain._add_zone`).
+`Run` wires those signals to a `StyleScore` and adds net chains (`_on_net_touched`) and slope clears (`_check_trick_zones`, using zones recorded by `Terrain._add_zone`).
 All point values and the rank thresholds are constants in `balance.gd`. Jury answer: "flips need the nose to spin freely, so the air clamp is removed only in `_fly_through_air`;
 a flip counts only if the landing angle is nose-first (`_enter_water`)."
