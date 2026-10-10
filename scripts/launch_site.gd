@@ -79,12 +79,17 @@ func _boat() -> void:
 	var blink := 0.5 + 0.5 * sin(time * 3.0)
 	Art.glow(self, Vector2(-490, deck - 172), 30.0, Color(Art.MAGENTA, 0.4 + 0.4 * blink))
 	draw_circle(Vector2(-490, deck - 172), 4.0, Art.MAGENTA)
-	# Ramp: a beam down to the stern, held up by posts. Taller ramp, taller posts.
-	var start := Balance.ramp_start(ramp_level)
-	var end := Balance.RAMP_END
-	draw_line(start + Vector2(-30, 14), end + Vector2(0, 14), Color("2a4170"), 14.0, true)
-	draw_line(start + Vector2(-30, 8), end + Vector2(0, 8), Art.CYAN, 2.5, true)
-	for t in [0.2, 0.55, 0.9]:
-		var p := start.lerp(end, t) + Vector2(0, 20)
-		draw_line(p, Vector2(p.x, deck), Color("2a4170"), 6.0, true)
-	draw_line(end + Vector2(0, 14), end + Vector2(-50, 200), Color("2a4170"), 8.0, true)
+	# Ramp: a curved beam (down, then a ski-jump bend up at the lip), held up by posts. Taller ramp, taller posts.
+	var beam := PackedVector2Array()
+	for i in 21:
+		beam.append(Balance.ramp_point(ramp_level, i / 20.0))
+	var under := PackedVector2Array()
+	for p in beam:
+		under.append(p + Vector2(0, 14))
+	draw_polyline(under, Color("2a4170"), 14.0, true)
+	draw_polyline(beam, Art.CYAN, 2.5, true)
+	for t in [0.12, 0.3, 0.5, 0.7, 0.9]:
+		var p: Vector2 = Balance.ramp_point(ramp_level, t) + Vector2(0, 20)
+		draw_line(p, Vector2(p.x, maxf(deck, p.y)), Color("2a4170"), 6.0, true)
+	var lip := Balance.RAMP_END
+	draw_line(lip + Vector2(0, 14), lip + Vector2(-50, 200), Color("2a4170"), 8.0, true)

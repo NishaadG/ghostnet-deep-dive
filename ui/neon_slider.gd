@@ -10,7 +10,6 @@ var _dragging := false
 
 
 func _init() -> void:
-	custom_minimum_size = Vector2(260, 30)
 	size = Vector2(260, 30)
 	mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 

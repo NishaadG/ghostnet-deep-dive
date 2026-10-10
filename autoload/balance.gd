@@ -5,10 +5,13 @@ extends Node
 const PX_PER_M := 10.0
 
 # ---- Launch (boat ramp, then a ballistic arc through the air) ----
-const RAMP_START := Vector2(-330, -330)        # top of the ramp with no Launch Ramp upgrades
-const RAMP_END := Vector2(0, -190)             # the stern, where Nova leaves the boat
+const RAMP_START := Vector2(-520, -330)        # top of the ramp with no Launch Ramp upgrades
+const RAMP_END := Vector2(0, -190)             # the lip at the stern, where Nova leaves the boat
+const LAUNCH_ANGLE_DEG := -14.0                # the ramp curves up into a ski jump: she leaves heading slightly upward
+const RAMP_CURVE := 190.0                      # how far back the ski-jump curve starts (px)
 const LAUNCH_SPEED := 440.0          # px/s at the end of the ramp, before upgrades
-const AIR_GRAVITY := 650.0
+const AIR_GRAVITY := 520.0
+const AIR_TILT_RATE := deg_to_rad(500.0)       # in the air she can spin freely and fast (flips)
 const ENTRY_FLAT_DEG := 10.0         # facing this flat or flatter = worst belly-flop
 const ENTRY_STEEP_DEG := 40.0        # facing this steep or steeper = no loss
 const ENTRY_MAX_LOSS := 0.4
@@ -22,6 +25,28 @@ const WING_TURN := 2.5               # rad/s the velocity may turn toward the no
 const DRAG := 0.0022
 const DRAG_MISALIGN := 0.0003        # extra drag when nose and motion disagree
 const THRUST := 650.0
+
+# ---- Tricks (see scripts/style_score.gd) ----
+const LOOP_MIN_SPEED := 420.0        # hold nose-up at the limit above this speed to loop
+const LOOP_CHARGE := 0.12            # seconds of holding before the loop starts
+const LOOP_RATE := 4.0               # rad/s while looping (a loop takes about 1.6 s)
+const GRIND_MIN_SPEED := 250.0
+const GRIND_MIN_TIME := 0.5
+const AIR_MIN_TIME := 0.5            # airtime shorter than this does not score
+const AIR_POINTS_PER_S := 120.0
+const FLIP_POINTS := 150.0
+const PERFECT_SPLASH_POINTS := 100.0
+const LOOP_POINTS := 250.0
+const GRIND_POINTS_PER_S := 80.0
+const CANYON_POINTS := 120.0
+const DROP_POINTS := 80.0
+const CHAIN_WINDOW := 2.5            # seconds between net cuts that keep a chain alive
+const CHAIN_STEP := 0.25             # multiplier added per net in the chain
+const CHAIN_MAX_MULT := 3.0
+const CHAIN_POINTS := 25.0
+const RANKS := [["S", 1800], ["A", 900], ["B", 450], ["C", 150], ["D", 0]]   # style points needed
+const STYLE_POINTS_PER_TAG := 40
+const STYLE_TAG_CAP := 0.2           # style tags can add at most this share of a dive's normal tags
 
 # ---- Touching the world ----
 const PLAYER_RADIUS := 22.0
@@ -47,10 +72,10 @@ const NET_RATE := {"reef": 0.9, "city": 1.4, "slope": 1.1, "trench": 0.9}   # lo
 # ---- Net walls: the story goals. HP persists between dives. ----
 # damage on contact = speed * ballast_mult * cutter_mult
 const WALLS := [
-	{"at_m": 400, "hp": 1000.0, "bonus": 25, "name": "Reef Gate"},
-	{"at_m": 1500, "hp": 3000.0, "bonus": 60, "name": "City Seal"},
-	{"at_m": 2800, "hp": 7000.0, "bonus": 110, "name": "Slope Curtain"},
-	{"at_m": 3600, "hp": 14000.0, "bonus": 200, "name": "The Lumen's Net"},
+	{"at_m": 400, "hp": 1500.0, "bonus": 25, "name": "Reef Gate"},
+	{"at_m": 1500, "hp": 3800.0, "bonus": 60, "name": "City Seal"},
+	{"at_m": 2800, "hp": 9500.0, "bonus": 110, "name": "Slope Curtain"},
+	{"at_m": 3600, "hp": 19000.0, "bonus": 200, "name": "The Lumen's Net"},
 ]
 const WALL_DAMAGE_SCALE := 1.5       # tuning knob: how hard walls are to tear (see tests/economy.gd)
 const WALL_SPEED_KEEP := 0.6         # Nova keeps this much speed after tearing through
@@ -139,9 +164,24 @@ const HARBOUR_LINES := [
 const NET_RETURN_FACTORS := [1.0, 0.85, 0.70, 0.55, 0.45, 0.35]
 
 
-# A taller Launch Ramp upgrade stretches the ramp up along the same slope.
+# A taller Launch Ramp upgrade raises the top of the ramp (and pushes it back a little).
 func ramp_start(ramp_level: int) -> Vector2:
-	return RAMP_END + (RAMP_START - RAMP_END) * (1.0 + 0.12 * ramp_level)
+	var offset := RAMP_START - RAMP_END
+	return RAMP_END + Vector2(offset.x * (1.0 + 0.05 * ramp_level), offset.y * (1.0 + 0.12 * ramp_level))
+
+
+# The ramp is a curve (quadratic Bezier): it slides down, then bends up into a ski jump at the lip.
+func ramp_point(ramp_level: int, t: float) -> Vector2:
+	var p0 := ramp_start(ramp_level)
+	var p1 := RAMP_END - Vector2.RIGHT.rotated(deg_to_rad(LAUNCH_ANGLE_DEG)) * RAMP_CURVE
+	return p0.lerp(p1, t).lerp(p1.lerp(RAMP_END, t), t)
+
+
+# Direction of travel along the ramp at t (0 = top, 1 = lip), as a unit vector.
+func ramp_direction(ramp_level: int, t: float) -> Vector2:
+	var p0 := ramp_start(ramp_level)
+	var p1 := RAMP_END - Vector2.RIGHT.rotated(deg_to_rad(LAUNCH_ANGLE_DEG)) * RAMP_CURVE
+	return ((p1 - p0) * 2.0 * (1.0 - t) + (RAMP_END - p1) * 2.0 * t).normalized()
 
 
 func zone_index_at(x_px: float) -> int:

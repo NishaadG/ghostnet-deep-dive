@@ -41,7 +41,7 @@ func update(player: Player) -> void:
 func loose_nets_up_to(x: float) -> int:
 	var count := 0
 	for net_x in loose_net_x:
-		if net_x <= x:
+		if net_x <= x + 150.0:                  # nets within reach of the last position count as 'along the way'
 			count += 1
 	return count
 

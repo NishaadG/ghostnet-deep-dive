@@ -2,9 +2,14 @@ class_name Player
 extends Node2D
 # Nova's body and flight model. Plain arcade physics, no physics engine:
 # we move the position ourselves and test it against the terrain height lookup.
+# Besides flying she reports tricks (flips, loops, grinds) as signals; style_score.gd scores them.
 
 signal launched
 signal splashed(pos: Vector2, loss: float)
+signal landed(air_time: float, flips: int, clean: bool, entry_deg: float)   # back in the water after being airborne
+signal flipped                                                                # one full rotation completed in the air
+signal looped                                                                 # a loop completed underwater
+signal grind_ended(seconds: float)                                            # a long skim along the seabed ended
 signal hit_floor(into_speed: float)
 signal hit_ceiling
 signal ended(reason: String)
@@ -19,6 +24,8 @@ var angle := 0.0               # facing: 0 = right, positive = nose down
 var oxygen := 0.0
 var fuel := 0.0
 var thrusting := false
+var touching_rock := false     # true on a frame where she touched the floor or ceiling
+var looping := false
 
 # Input is read into these two fields; tests and the touch UI can fill them instead.
 var scripted := false
@@ -27,10 +34,16 @@ var thrust_input := false
 
 var rig: DiverRig
 var _ramp_t := 0.0
-var _ramp_start := Vector2.ZERO
+var _ramp_length := 1.0
 var _rest_timer := 0.0
 var _ceiling_cooldown := 0.0
 var _floor_hit_cooldown := 0.0
+var _air_time := 0.0
+var _air_rotation := 0.0
+var _flips_done := 0
+var _loop_charge := 0.0
+var _loop_turned := 0.0
+var _grind_time := 0.0
 
 
 func start(new_stats: Dictionary, new_terrain: Terrain) -> void:
@@ -38,9 +51,12 @@ func start(new_stats: Dictionary, new_terrain: Terrain) -> void:
 	terrain = new_terrain
 	oxygen = stats["max_oxygen"]
 	fuel = stats["max_fuel"]
-	_ramp_start = Balance.ramp_start(stats["ramp_level"])
-	position = _ramp_start
-	angle = (Balance.RAMP_END - _ramp_start).angle()
+	var level: int = stats["ramp_level"]
+	position = Balance.ramp_point(level, 0.0)
+	_ramp_length = 0.0                                   # rough curve length: sum of short chords
+	for i in 20:
+		_ramp_length += Balance.ramp_point(level, i / 20.0).distance_to(Balance.ramp_point(level, (i + 1) / 20.0))
+	angle = Balance.ramp_direction(level, 0.0).angle()
 	rotation = angle
 	rig = DiverRig.new()
 	rig.tiers = {"craft": stats["craft_tier"], "booster": stats["booster_tier"], "cutter": stats["cutter_tier"]}
@@ -67,40 +83,88 @@ func _physics_process(delta: float) -> void:
 	rig.speed = vel.length()
 
 
-# Constant acceleration down the ramp: speed grows with the square root of progress.
+# Down the ramp with constant acceleration, then off the ski-jump lip heading slightly upward.
 func _slide_down_ramp(delta: float) -> void:
-	var length := _ramp_start.distance_to(Balance.RAMP_END)
-	var speed: float = stats["launch_speed"] * maxf(0.25, sqrt(_ramp_t))
-	_ramp_t += speed * delta / length
+	var level: int = stats["ramp_level"]
+	var speed: float = stats["launch_speed"] * maxf(0.6, sqrt(_ramp_t))
+	_ramp_t += speed * delta / _ramp_length
 	if _ramp_t < 1.0:
-		position = _ramp_start.lerp(Balance.RAMP_END, _ramp_t)
+		position = Balance.ramp_point(level, _ramp_t)
+		angle = Balance.ramp_direction(level, _ramp_t).angle()
 		return
 	position = Balance.RAMP_END
+	angle = Balance.ramp_direction(level, 1.0).angle()
 	vel = Vector2.RIGHT.rotated(angle) * stats["launch_speed"]
-	state = State.AIR
+	_begin_air()
 	launched.emit()
 
 
-# In the air the player can only tilt: a steep nose-down entry keeps speed.
+func _begin_air() -> void:
+	state = State.AIR
+	_air_time = 0.0
+	_air_rotation = 0.0
+	_flips_done = 0
+
+
+# In the air she can spin freely: full flips score, but she must land nose-first to keep them.
 func _fly_through_air(delta: float) -> void:
-	_tilt(delta)
+	var turn := tilt_input * Balance.AIR_TILT_RATE * delta
+	angle += turn
+	_air_rotation += turn
+	if absf(_air_rotation) >= TAU * (_flips_done + 1):
+		_flips_done += 1
+		flipped.emit()
+	_air_time += delta
 	vel.y += Balance.AIR_GRAVITY * delta
 	position += vel * delta
 	if position.y >= 0.0:
 		_enter_water()
 
 
+# Entering the water: a steep nose-first entry keeps all speed, a flat or backwards one loses up to 40%.
 func _enter_water() -> void:
-	var steepness := (rad_to_deg(angle) - Balance.ENTRY_FLAT_DEG) / (Balance.ENTRY_STEEP_DEG - Balance.ENTRY_FLAT_DEG)
-	var flatness := 1.0 - clampf(steepness, 0.0, 1.0)
+	var entry := wrapf(angle, -PI, PI)
+	var deg := rad_to_deg(entry)
+	var flatness := 1.0
+	if deg <= 90.0:
+		flatness = 1.0 - clampf((deg - Balance.ENTRY_FLAT_DEG) / (Balance.ENTRY_STEEP_DEG - Balance.ENTRY_FLAT_DEG), 0.0, 1.0)
 	var loss: float = Balance.ENTRY_MAX_LOSS * flatness * stats["entry_loss_mult"]
 	vel *= 1.0 - loss
 	state = State.WATER
+	angle = clampf(entry, Balance.ANGLE_MIN, Balance.ANGLE_MAX)
+	var clean := deg >= 20.0 and deg <= 85.0               # nose-first: flips and airtime count
+	landed.emit(_air_time, _flips_done, clean, deg)
 	splashed.emit(position, loss)
 
 
+# Underwater the nose has a limited range, except during a loop (see _try_loop).
 func _tilt(delta: float) -> void:
-	angle = clampf(angle + tilt_input * Balance.TILT_RATE * delta, Balance.ANGLE_MIN, Balance.ANGLE_MAX)
+	if looping:
+		return
+	var wanted := angle + tilt_input * Balance.TILT_RATE * delta
+	_try_loop(wanted, delta)
+	angle = clampf(wanted, Balance.ANGLE_MIN, Balance.ANGLE_MAX)
+
+
+# Hold nose-up against the limit while fast and with room above and below, and she commits to a loop.
+func _try_loop(wanted: float, delta: float) -> void:
+	var at_limit := tilt_input < 0.0 and wanted <= Balance.ANGLE_MIN and vel.length() >= Balance.LOOP_MIN_SPEED
+	if not (at_limit and _has_room_to_loop()):
+		_loop_charge = 0.0
+		return
+	_loop_charge += delta
+	if _loop_charge >= Balance.LOOP_CHARGE:
+		looping = true
+		_loop_turned = 0.0
+		_loop_charge = 0.0
+
+
+func _has_room_to_loop() -> bool:
+	var radius := vel.length() / Balance.LOOP_RATE          # faster loops are bigger and need more room
+	var needed := radius * 1.5 + 60.0
+	var below := terrain.floor_y(position.x) - position.y
+	var above := position.y - maxf(terrain.ceiling_y(position.x), 0.0)
+	return below > needed and above > needed
 
 
 # The core model. Read it top to bottom: weight, wing, drag, thrust, move, collide.
@@ -108,9 +172,12 @@ func _swim(delta: float) -> void:
 	_tilt(delta)
 	oxygen -= delta
 	vel.y += Balance.GRAVITY * stats["ballast_mult"] * delta                 # sinking weight
-	# The wing slowly turns the direction of travel toward the nose. This is "lift".
-	var max_turn: float = Balance.WING_TURN * stats["wing_mult"] * delta
-	vel = vel.rotated(clampf(angle_difference(vel.angle(), angle), -max_turn, max_turn))
+	if looping:
+		_loop_step(delta)
+	else:
+		# The wing slowly turns the direction of travel toward the nose. This is "lift".
+		var max_turn: float = Balance.WING_TURN * stats["wing_mult"] * delta
+		vel = vel.rotated(clampf(angle_difference(vel.angle(), angle), -max_turn, max_turn))
 	# Drag grows with speed, and more when the nose and the motion disagree.
 	var misalign := absf(angle_difference(vel.angle(), angle))
 	var drag: float = (Balance.DRAG + Balance.DRAG_MISALIGN * misalign) * stats["drag_mult"]
@@ -121,7 +188,7 @@ func _swim(delta: float) -> void:
 		vel += Vector2.RIGHT.rotated(angle) * Balance.THRUST * stats["thrust_mult"] * delta
 	position += vel * delta
 	if position.y < 0.0:                                                     # breached the surface
-		state = State.AIR
+		_begin_air()
 		return
 	_collide_with_terrain(delta)
 	if oxygen <= 0.0:
@@ -129,12 +196,28 @@ func _swim(delta: float) -> void:
 		finish("oxygen")
 
 
+# During a loop the nose and the motion turn together at a fixed rate, so the path is a tight circle.
+func _loop_step(delta: float) -> void:
+	var turn := Balance.LOOP_RATE * delta
+	angle -= turn
+	vel = vel.rotated(-turn)
+	_loop_turned += turn
+	if _loop_turned >= TAU:
+		looping = false
+		angle = wrapf(angle, -PI, PI)
+		angle = clampf(angle, Balance.ANGLE_MIN, Balance.ANGLE_MAX)
+		looped.emit()
+
+
 func _collide_with_terrain(delta: float) -> void:
 	var r := Balance.PLAYER_RADIUS
 	var on_floor := false
+	var grazing := false
+	touching_rock = false
 	var floor_y := terrain.floor_y(position.x)
 	if position.y + r > floor_y:
 		on_floor = true
+		touching_rock = true
 		# Surface normal from the local slope: tangent is (1, slope), normal points up and out.
 		var slope := (terrain.floor_y(position.x + 6.0) - terrain.floor_y(position.x - 6.0)) / 12.0
 		var normal := Vector2(slope, -1.0).normalized()
@@ -149,8 +232,10 @@ func _collide_with_terrain(delta: float) -> void:
 				_floor_hit_cooldown = 0.4
 		vel *= 1.0 - Balance.FLOOR_FRICTION * delta        # skimming scrapes speed instead of stopping dead
 		position.y = floor_y - r
+		grazing = vel.length() > Balance.GRIND_MIN_SPEED
 	var ceiling_y := terrain.ceiling_y(position.x)
 	if ceiling_y > 0.0 and position.y - r < ceiling_y:
+		touching_rock = true
 		position.y = ceiling_y + r
 		if vel.y < 0.0:
 			vel.y = 40.0
@@ -158,12 +243,23 @@ func _collide_with_terrain(delta: float) -> void:
 				vel *= Balance.CEILING_KEEP
 				_ceiling_cooldown = Balance.CEILING_COOLDOWN
 				hit_ceiling.emit()
+	_track_grind(grazing, delta)
 	if on_floor and vel.length() < Balance.REST_SPEED:
 		_rest_timer += delta
 		if _rest_timer >= Balance.REST_TIME:
 			finish("rest")
 	else:
 		_rest_timer = 0.0
+
+
+# A grind is an unbroken skim along the seabed at speed; it scores when it ends.
+func _track_grind(grazing: bool, delta: float) -> void:
+	if grazing:
+		_grind_time += delta
+		return
+	if _grind_time >= Balance.GRIND_MIN_TIME:
+		grind_ended.emit(_grind_time)
+	_grind_time = 0.0
 
 
 func add_oxygen(seconds: float) -> void:
@@ -177,6 +273,10 @@ func add_fuel(fraction_of_tank: float) -> void:
 func finish(reason: String) -> void:
 	if state == State.DONE:
 		return
+	if _grind_time >= Balance.GRIND_MIN_TIME and reason != "crash":
+		grind_ended.emit(_grind_time)
+	_grind_time = 0.0
 	state = State.DONE
 	thrusting = false
+	looping = false
 	ended.emit(reason)

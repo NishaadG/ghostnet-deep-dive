@@ -28,6 +28,7 @@ var site: LaunchSite
 var backdrop: Backdrop
 var pip: Pip
 var hud: Hud
+var style := StyleScore.new()
 var camera: Camera2D
 var tint: CanvasModulate
 var whale: Whale
@@ -47,6 +48,7 @@ var _shake := 0.0
 var _zone := -1
 var _darkness: ColorRect
 var _bubbles: CPUParticles2D
+var _zone_state := {}                 # trick zone id -> "armed", "failed" or "done"
 
 
 func _ready() -> void:
@@ -99,6 +101,11 @@ func _ready() -> void:
 	add_child(camera)
 	camera.make_current()
 	_build_overlay()
+	player.landed.connect(style.landed)
+	player.looped.connect(style.looped)
+	player.grind_ended.connect(style.grind_ended)
+	player.flipped.connect(func(): hud.show_trick("FLIP!", 0))
+	style.trick.connect(func(label: String, points: int): hud.show_trick(label, points))
 	terrain.update(camera.position.x)
 
 
@@ -110,7 +117,9 @@ func _process(delta: float) -> void:
 	_bubbles.emitting = water and player.state != Player.State.DONE
 	Audio.set_loop("boost_loop", player.thrusting)
 	if not ended:
+		style.update(delta)
 		spawner.update(player)
+		_check_trick_zones()
 		_spawn_walls()
 		_check_walls()
 		_zone_banner()
@@ -223,10 +232,37 @@ func _free_the_lumen() -> void:
 	get_tree().create_timer(3.5, true, false, true).timeout.connect(func(): player.finish("lumen"))
 
 
+# ---- Trick zones: canyons and drops passed without touching rock ----
+
+func _check_trick_zones() -> void:
+	var x := player.position.x
+	for zone in terrain.trick_zones:
+		var id: int = zone["id"]
+		var state: String = _zone_state.get(id, "")
+		if state == "done" or state == "failed" or x < zone["x0"] - 60.0 or x > zone["x1"] + 800.0:
+			continue
+		if state == "":
+			# Armed at the lip, while flying (not scraping) near the zone's starting height.
+			var near_lip: bool = zone["kind"] == "canyon" or player.position.y < zone["y0"] + 150.0
+			if x >= zone["x0"] - 40.0 and near_lip and player.state == Player.State.WATER and not player.touching_rock:
+				_zone_state[id] = "armed"
+			continue
+		if player.touching_rock:
+			_zone_state[id] = "failed"
+			continue
+		var cleared: bool = x >= zone["x1"] + 40.0 if zone["kind"] == "canyon" else player.position.y >= zone["y1"] - 250.0
+		if cleared:
+			_zone_state[id] = "done"
+			var size: float = absf(zone["x1"] - zone["x0"]) if zone["kind"] == "canyon" else absf(zone["y1"] - zone["y0"])
+			style.zone_cleared(zone["kind"], size)
+
+
 # ---- Results ----
 
 func make_result() -> Dictionary:
 	var distance_m := maxf(0.0, player.position.x / Balance.PX_PER_M)
+	var base_tags := tags_so_far()
+	var style_summary := style.summary(base_tags)
 	return {
 		"reason": end_reason,
 		"distance_m": distance_m,
@@ -239,11 +275,13 @@ func make_result() -> Dictionary:
 		"wall_info": wall_info,
 		"lumen_freed": lumen_freed,
 		"fleet_cut": spawner.loose_nets_up_to(player.position.x),
-		"tags": tags_so_far(),
+		"style": style_summary,
+		"style_tags": style_summary["tags"],
+		"tags": base_tags + int(style_summary["tags"]),
 	}
 
 
-# Same formula as the results screen, so the HUD number matches what you bank.
+# The dive's normal tags (style bonus is added on top when the dive ends).
 func tags_so_far() -> int:
 	return Balance.tags_for(maxf(0.0, player.position.x / Balance.PX_PER_M), max_depth_m, nets_cut, animals_freed, wall_bonus)
 
@@ -251,6 +289,7 @@ func tags_so_far() -> int:
 func _on_net_touched(net: Net) -> void:
 	net.cut_open()
 	nets_cut += 1
+	style.net_cut()
 	player.vel *= stats["net_slow"]
 	Audio.play("cut")
 	if net.has_animal:
