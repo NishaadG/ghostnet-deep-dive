@@ -13,9 +13,9 @@ config_version=5
 config/name="GHOSTNET: Deep Dive"
 run/main_scene="res://scenes/main.tscn"
 config/features=PackedStringArray("4.6", "GL Compatibility")
-config/icon="res://icon.svg"
 boot_splash/bg_color=Color(0.0196, 0.0431, 0.102, 1)
 boot_splash/show_image=false
+config/icon="res://icon.svg"
 
 [autoload]
 
@@ -29,7 +29,6 @@ Audio="*res://autoload/audio.gd"
 window/size/viewport_width=1280
 window/size/viewport_height=720
 window/stretch/mode="canvas_items"
-window/handheld/orientation=0
 
 [rendering]
 
