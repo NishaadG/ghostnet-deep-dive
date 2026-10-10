@@ -1,7 +1,7 @@
 class_name StyleScore
 extends RefCounted
 # The evaluation of a dive: style points for tricks, a rank (D to S), and a small tag bonus.
-# Tricks: launch airtime and flips, underwater loops, floor grinds, canyon and drop clears, and net chains.
+# Tricks: launch airtime and flips, underwater loops, floor grinds, slope clears, and net chains.
 # A net chain (nets cut within CHAIN_WINDOW of each other) raises a multiplier that boosts later tricks.
 # Run feeds events in; the HUD listens to `trick`; the results screen reads summary().
 
@@ -62,12 +62,9 @@ func grind_ended(seconds: float) -> void:
 	_add("Grinds", "GRIND %.1fs" % seconds, Balance.GRIND_POINTS_PER_S * seconds)
 
 
-# Crossed a city canyon or plunged down a drop without touching rock.
-func zone_cleared(kind: String, size_px: float) -> void:
-	if kind == "canyon":
-		_add("Canyon clears", "CANYON CLEAR", Balance.CANYON_POINTS + size_px * 0.05)
-	else:
-		_add("Drop clears", "DROP CLEAR", Balance.DROP_POINTS + size_px * 0.04)
+# Flew down a long slope without touching rock.
+func slope_cleared(height_px: float) -> void:
+	_add("Slope clears", "SLOPE CLEAR", Balance.SLOPE_POINTS + height_px * 0.04)
 
 
 # Blasted through a piranha school too fast for a bite.

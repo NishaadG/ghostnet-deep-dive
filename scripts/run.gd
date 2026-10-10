@@ -304,7 +304,7 @@ func debug_spawn(kind: String) -> void:
 			spawner.debug_add_pickup(kind, pos)
 
 
-# ---- Trick zones: canyons and drops passed without touching rock ----
+# ---- Trick zones: long slopes flown down without touching rock ----
 
 func _check_trick_zones() -> void:
 	var x := player.position.x
@@ -315,18 +315,17 @@ func _check_trick_zones() -> void:
 			continue
 		if state == "":
 			# Armed at the lip, while flying (not scraping) near the zone's starting height.
-			var near_lip: bool = zone["kind"] == "canyon" or player.position.y < zone["y0"] + 150.0
+			var near_lip: bool = player.position.y < zone["y0"] + 150.0
 			if x >= zone["x0"] - 40.0 and near_lip and player.state == Player.State.WATER and not player.touching_rock:
 				_zone_state[id] = "armed"
 			continue
 		if player.touching_rock:
 			_zone_state[id] = "failed"
 			continue
-		var cleared: bool = x >= zone["x1"] + 40.0 if zone["kind"] == "canyon" else player.position.y >= zone["y1"] - 250.0
+		var cleared: bool = player.position.y >= zone["y1"] - 250.0
 		if cleared:
 			_zone_state[id] = "done"
-			var size: float = absf(zone["x1"] - zone["x0"]) if zone["kind"] == "canyon" else absf(zone["y1"] - zone["y0"])
-			style.zone_cleared(zone["kind"], size)
+			style.slope_cleared(absf(zone["y1"] - zone["y0"]))
 # ---- Story during the dive ----
 
 # The first time a wall comes into view, ask main to pause and play its meeting scene.
@@ -335,7 +334,7 @@ func _story_checks() -> void:
 	for i in walls:
 		var wall: NetWall = walls[i]
 		var id := "wall%d_meet" % i
-		if not wall.torn and not Game.scene_seen(id) and not _radio_said.has(id) \
+		if not wall.torn and not Game.scene_seen(id) and not _radio_said.has(id) and not Debug.is_on("skip_scenes") \
 				and player.position.x > wall.position.x - MEET_DISTANCE:
 			_radio_said[id] = true
 			story_moment.emit(id)

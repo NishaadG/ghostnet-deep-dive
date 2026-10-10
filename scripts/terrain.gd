@@ -5,11 +5,9 @@ extends Node2D
 # so collision is just "is Nova below floor_y(x)?". Nothing is stored for the ceiling.
 # Scenery (corals, towers, crystals) is a list of small records drawn only near the camera.
 
-const SHEER := 90.0   # horizontal width of a "sheer" wall, so the slope is steep but never vertical
-
 var points := PackedVector2Array()   # floor polyline, x ascending
 var decor: Array[Dictionary] = []    # {kind, x, y, size, seed, variant, up, width}
-var trick_zones: Array[Dictionary] = []   # {id, kind (canyon or drop), x0, x1, y0, y1}: places worth a clean-pass bonus
+var trick_zones: Array[Dictionary] = []   # {id, kind ("drop"), x0, x1, y0, y1}: long slopes worth a clean-pass bonus
 var _zone_id := 0
 var view_x := 0.0
 var view_half := 1100.0              # half the visible width in world px
@@ -66,6 +64,8 @@ func _segment_index(x: float) -> int:
 
 
 # ---- Generation: each zone has its own recipe for one "step" ----
+# A step is a nearly flat shelf followed by a gradual slope DOWN. The floor never rises more than a few
+# pixels and never drops steeper than about 36 degrees, so the cave always reads as one long descent.
 
 func _add_step() -> void:
 	var first_new := points.size() - 1
@@ -74,52 +74,54 @@ func _add_step() -> void:
 	if zone == "abyss":
 		zone = ["reef", "city", "slope", "trench"][rng.randi() % 4]
 	match zone:
-		"reef":    # gentle shelf, small step
-			_shelf(rng.randf_range(350, 600), 10.0)
-			_drop(rng.randf_range(50, 110), 140.0)
-		"city":    # flat roof, street canyon, next roof a little lower
+		"reef":    # gentle shelf, small gradual step
+			_shelf(rng.randf_range(350, 600), 8.0)
+			_descend(rng.randf_range(50, 110), 8.0, 12.0)
+		"city":    # a drowned tower's flat roof, then a gradual slope down to the next, lower roof
 			_shelf(rng.randf_range(300, 700), 0.0)
 			var roof_start := points[first_new]
 			var roof_end: Vector2 = points[points.size() - 1]
 			_add_decor("tower", roof_start.x, roof_start.y, 0.0, roof_end.x - roof_start.x, false)
-			var depth := rng.randf_range(250, 500)
-			var lower := rng.randf_range(100, 250)
-			var lip := points[points.size() - 1]
-			_drop(depth, SHEER)
-			_shelf(rng.randf_range(600, 1500), 15.0)
-			var y: float = points[points.size() - 1].y
-			points.append(Vector2(points[points.size() - 1].x + SHEER, y - depth + lower))
-			_add_zone("canyon", lip, points[points.size() - 1])
-		"slope":   # rock ledge, then a big drop
-			_shelf(rng.randf_range(500, 900), 25.0)
-			var slope_lip := points[points.size() - 1]
-			_drop(rng.randf_range(1200, 2500), 150.0)
-			_add_zone("drop", slope_lip, points[points.size() - 1])
-		"trench":  # short ledge, then a very long drop
-			_shelf(rng.randf_range(250, 450), 10.0)
-			var trench_lip := points[points.size() - 1]
-			_drop(rng.randf_range(2500, 4500), 170.0)
-			_add_zone("drop", trench_lip, points[points.size() - 1])
+			_descend(rng.randf_range(200, 450), 14.0, 20.0)
+		"slope":   # rock ledge, then a long gradual slope down
+			_shelf(rng.randf_range(500, 900), 10.0)
+			_descend(rng.randf_range(1200, 2500), 20.0, 28.0)
+		"trench":  # short ledge, then a very long gradual slope down
+			_shelf(rng.randf_range(250, 450), 6.0)
+			_descend(rng.randf_range(2500, 4500), 24.0, 32.0)
 	_decorate(first_new, zone)
 
 
-# In the endless Abyss, drops grow 5% every 500 m.
+# In the endless Abyss, descents grow 5% every 500 m.
 func _drop_scale(x: float) -> float:
 	var past_abyss_m := x / Balance.PX_PER_M - Balance.ZONES[4]["start_m"]
 	return pow(1.05, maxf(0.0, floorf(past_abyss_m / 500.0)))
 
 
+# A nearly flat stretch. Each piece changes height by only a few pixels, so there are no sudden bumps.
 func _shelf(length: float, bumpiness: float) -> void:
 	var start: Vector2 = points[points.size() - 1]
-	var pieces := maxi(1, int(length / 110.0))
+	var pieces := maxi(1, int(length / 180.0))
+	var y := start.y
 	for i in range(1, pieces + 1):
-		var wobble := rng.randf_range(-bumpiness, bumpiness) if i < pieces else 0.0
-		points.append(Vector2(start.x + length * i / pieces, start.y + wobble))
+		y += rng.randf_range(-bumpiness, bumpiness) * 0.35
+		y = clampf(y, start.y - bumpiness, start.y + bumpiness)
+		points.append(Vector2(start.x + length * i / pieces, y))
 
 
-func _drop(height: float, width: float) -> void:
-	var last: Vector2 = points[points.size() - 1]
-	points.append(Vector2(last.x + width, last.y + height * _drop_scale(last.x)))
+# A gradual slope down by `height` px at an average of `min_deg` to `max_deg` degrees. The ends are eased so
+# the lip and the base are rounded, and the steepest part is only about 20% steeper than the average.
+func _descend(height: float, min_deg: float, max_deg: float) -> void:
+	var start: Vector2 = points[points.size() - 1]
+	var total := height * _drop_scale(start.x)
+	var width := total / tan(deg_to_rad(rng.randf_range(min_deg, max_deg)))
+	var pieces := maxi(3, int(width / 280.0))
+	for i in range(1, pieces + 1):
+		var t := float(i) / pieces
+		var eased := t * 0.6 + 0.4 * smoothstep(0.0, 1.0, t)
+		points.append(Vector2(start.x + width * t, start.y + total * eased))
+	if total >= 250.0:
+		_add_zone("drop", start, points[points.size() - 1])
 
 
 # Scatter scenery on the segments of the step we just built.
@@ -156,7 +158,7 @@ func _decorate(first_point: int, zone: String) -> void:
 					_add_decor("fan", x, y, rng.randf_range(60, 100), 0.0, false)
 
 
-# Remember a canyon or drop so the run can award a bonus for passing it without touching rock.
+# Remember a long slope so the run can award a bonus for flying down it without touching rock.
 func _add_zone(kind: String, from: Vector2, to: Vector2) -> void:
 	_zone_id += 1
 	trick_zones.append({"id": _zone_id, "kind": kind, "x0": from.x, "x1": to.x, "y0": from.y, "y1": to.y})
@@ -210,8 +212,9 @@ func _draw() -> void:
 				ceiling_edge.append(Vector2(a.x, ca))
 			ceiling_edge.append(Vector2(b.x, cb))
 	_draw_strata(floor_edge, rock, accent)
-	_draw_glow_line(floor_edge, accent, 1.0)
-	_draw_glow_line(ceiling_edge, accent, 0.5)
+	var dark: float = palette["dark"]
+	_draw_glow_line(floor_edge, accent, 1.0 + dark * 0.8)          # brighter edges in dark water, so slopes stay readable
+	_draw_glow_line(ceiling_edge, accent, 0.5 + dark * 0.6)
 	_draw_decor(x_min, x_max, palette)
 
 

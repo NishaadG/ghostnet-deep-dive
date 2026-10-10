@@ -55,6 +55,7 @@ func _ready() -> void:
 		check(last.kind == creature, "spawn adds a %s" % creature)
 	# god mode: a creature touch does no harm
 	Debug.cheats["god"] = true
+	run.player.stunned = 0.0                           # a random creature may have stunned Nova during the earlier steps
 	var oxygen := run.player.oxygen
 	run._on_hazard_touched(run.spawner.hazards[-1])
 	check(run.player.oxygen == oxygen and run.player.stunned == 0.0, "god mode: creatures are harmless")
@@ -112,11 +113,20 @@ func _through_main() -> void:
 	if dive:
 		Debug.teleport_to_next_wall()
 		check(dive.player.position.x / 10.0 > 300.0, "teleport to next wall moves Nova to it")
-		Debug.teleport_to_next_zone("canyon")
+		Debug.teleport_to_next_zone("drop")
 		Debug.fill_supplies()
+		# teleporting next to a wall must not freeze the dive under the panel (the skip_scenes cheat is on by default)
+		Debug.teleport(385.0)
+		for i in 30:
+			await get_tree().process_frame
+		check(not get_tree().paused, "teleporting beside a wall does not pause the dive")
+		Debug.cheats["skip_scenes"] = false
+		Game.seen_scenes.erase("wall0_meet")
 		Debug.play_scene("wall0_meet")                       # plays over the dive and pauses it
 		await get_tree().process_frame
 		check(get_tree().paused, "a scene played over a dive pauses it")
-		get_tree().paused = false
+		Debug.unfreeze()
+		check(not get_tree().paused and is_equal_approx(Engine.time_scale, 1.0), "unfreeze unpauses and restores the clock")
+	Debug.cheats["skip_scenes"] = true
 	main.queue_free()
 	await get_tree().process_frame
