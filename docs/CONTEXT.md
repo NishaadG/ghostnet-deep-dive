@@ -31,6 +31,10 @@ Everything below is built, committed, and the tests pass.
 
 Style points and ranks, in `scripts/style_score.gd` (scoring rules, ranks, tag bonus) fed by `Player` signals (`landed`, `flipped`, `looped`, `grind_ended`) and `Run` (net chain, canyon/drop zones from `Terrain.trick_zones`). The air only exists near the start (the cave ceiling closes it), so flips/airtime are launch-only; the launch ramp is a ski-jump curve (`Balance.ramp_point`) to give about a second of airtime. Underwater tricks are loops (hold nose-up at speed), floor grinds, canyon/drop clears and net chains. All numbers are in `balance.gd` (section "Tricks"). The results screen shows an EVALUATION panel; `Game.best_style` / `best_rank` are saved per slot. Tests: `tests/style.tscn`.
 
+## 2c. Debug mode (branch `feature/debug-mode`)
+
+`autoload/debug.gd` + `ui/debug_panel.gd`, opened with F9. Hooks are tiny: `Player` checks `Debug.is_on("god" / "oxygen" / "fuel")`, `Run._hit_wall` checks `"wall_kill"`, and `Run.debug_teleport / debug_spawn` do the moving. Set `Debug.ENABLED := false` for a release without cheats. Test: `tests/debug_mode.tscn`.
+
 ## 3. Decisions the user made (do not undo)
 
 - Look: **neon vector, glowing**, everything procedural. The kit's AI-looking sprites and story images were deliberately dropped (they remain in `assets/` and `comic_assets/` for the comic only).

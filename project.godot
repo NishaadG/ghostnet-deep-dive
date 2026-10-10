@@ -22,6 +22,7 @@ config/icon="res://icon.svg"
 Balance="*res://autoload/balance.gd"
 Art="*res://autoload/art.gd"
 Game="*res://autoload/game.gd"
+Debug="*res://autoload/debug.gd"
 Audio="*res://autoload/audio.gd"
 
 [display]

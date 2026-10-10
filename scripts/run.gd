@@ -52,6 +52,7 @@ var _shake := 0.0
 var _zone := -1
 var _darkness: ColorRect
 var _bubbles: CPUParticles2D
+var terrain_seed := 0
 var _zone_state := {}                 # trick zone id -> "armed", "failed" or "done"
 var _radio_said := {}                 # radio lines already used this dive, so each plays once
 
@@ -66,7 +67,8 @@ func _ready() -> void:
 	tint = CanvasModulate.new()
 	add_child(tint)
 	terrain = Terrain.new()
-	terrain.setup(randi())
+	terrain_seed = randi()
+	terrain.setup(terrain_seed)
 	terrain.all_lit = Game.story_complete
 	site = LaunchSite.new()
 	site.ramp_level = stats["ramp_level"]
@@ -208,7 +210,8 @@ func _check_walls() -> void:
 # damage = speed * ballast * cutter. A wall that survives keeps its damage for next time.
 func _hit_wall(index: int, wall: NetWall) -> void:
 	var before := wall.hp
-	wall.hit(player.vel.length() * stats["ballast_mult"] * stats["cutter_mult"] * Balance.WALL_DAMAGE_SCALE)
+	var damage: float = player.vel.length() * stats["ballast_mult"] * stats["cutter_mult"] * Balance.WALL_DAMAGE_SCALE
+	wall.hit(damage * (1000.0 if Debug.is_on("wall_kill") else 1.0))
 	Game.wall_hp[str(index)] = wall.hp
 	Game.save_game()
 	_bump(16.0)
@@ -239,6 +242,44 @@ func _free_the_lumen() -> void:
 		create_tween().tween_property(whale, "lit", 1.0, 2.5)
 		create_tween().tween_property(whale, "wrapped", 0.0, 1.5)
 	get_tree().create_timer(3.5, true, false, true).timeout.connect(func(): player.finish("lumen"))
+
+
+# ---- Debug helpers (called from autoload/debug.gd) ----
+
+# Jump Nova to a distance in metres, in the middle of the corridor, moving forward.
+func debug_teleport(metres: float) -> void:
+	var x := metres * Balance.PX_PER_M
+	if x < terrain.points[0].x + 400.0:
+		terrain.setup(terrain_seed)                  # the terrain behind us was forgotten: rebuild the same trench
+	terrain.update(x)
+	var corridor := Balance.corridor_at(x)
+	var floor_y := terrain.floor_y(x)
+	var top := maxf(terrain.ceiling_y(x), 0.0)
+	player.state = Player.State.WATER
+	player.looping = false
+	player.position = Vector2(x, clampf(floor_y - corridor * 0.5, top + 60.0, floor_y - 80.0))
+	player.vel = Vector2(520, 60)
+	player.angle = 0.1
+	spawner.debug_reset(x - 300.0)
+	camera.position = player.position
+	pip.position = player.position
+	style.break_chain()
+	_zone_state.clear()
+	_zone = -1
+	_zone_banner()
+
+
+func debug_spawn(kind: String) -> void:
+	var pos := player.position + Vector2(600, 0)
+	match kind:
+		"net", "animal":
+			var net := Net.new()
+			net.setup(randi() % 4, kind == "animal")
+			net.position = pos
+			spawner.add_child(net)
+			spawner.nets.append(net)
+		_:
+			spawner.debug_add_pickup(kind, pos)
 
 
 # ---- Trick zones: canyons and drops passed without touching rock ----

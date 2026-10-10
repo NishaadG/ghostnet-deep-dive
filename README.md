@@ -40,7 +40,23 @@ Tip: dive in off the ramp with the nose down (a steep entry keeps all your speed
 | `F2` | +500 tags |
 | `F3` | jump to a mid-game save (Net Return 4, mid-tier gear) |
 | `F4` | unlock Endless mode |
+| `F5` | unlock every story scene |
+| `F9` | open the debug panel (teleport, cheats, spawners) |
 | `F5` | unlock every cutscene in the title's STORY screen (to show the whole story quickly) |
+
+## Debug mode (F9)
+
+Press **F9** (or the `` ` `` key) on any screen to open the developer panel on the right side of the screen. It has:
+
+- **Teleport** (in a dive): jump to the start, each wall, each zone, the next wall, the next canyon or drop, or any distance you type in metres. Going backwards rebuilds the same trench.
+- **Cheats:** God mode (no crash or rest end), infinite O2, infinite fuel, walls that die in one hit, fill supplies, +400 speed, stop.
+- **Spawn in front:** a net, a net with an animal, an O2 canister, a fuel cell.
+- **Trick tests:** add style points, flips, a loop, a net chain, a grind, a canyon clear (to check pop-ups and the results panel).
+- **Story scenes:** play any of the 10 cutscenes, over the dive or as a full screen.
+- **Game state:** +500 tags, max all gear, tear or restore all walls, unlock Endless and scenes, reset the slot, load the mid-game save, jump to the title, workshop or a new dive.
+- A live readout of fps, position, speed, oxygen, zone and style.
+
+All of it lives in `autoload/debug.gd` (actions) and `ui/debug_panel.gd` (buttons). To ship a build without it, set `ENABLED := false` at the top of `debug.gd`.
 
 ## Opening and exporting
 

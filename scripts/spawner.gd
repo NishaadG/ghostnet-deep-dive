@@ -37,6 +37,20 @@ func update(player: Player) -> void:
 	_remove_behind(player.position.x - BEHIND)
 
 
+# Debug: throw away everything and start spawning again from x (used after a teleport).
+func debug_reset(x: float) -> void:
+	for child in get_children():
+		child.queue_free()
+	nets.clear()
+	pickups.clear()
+	_frontier = x
+	_scanned_to = x
+
+
+func debug_add_pickup(kind: String, pos: Vector2) -> void:
+	_add_pickup(kind, pos)
+
+
 # "The fleet cut loose M nets" = loose nets placed along the stretch Nova travelled.
 func loose_nets_up_to(x: float) -> int:
 	var count := 0

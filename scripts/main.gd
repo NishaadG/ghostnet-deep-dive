@@ -11,6 +11,7 @@ var _rotate_notice: Control # shown on a phone held upright: the game is landsca
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS     # so the pause menu works while the dive is paused
+	Debug.main = self
 	_build_rotate_notice()
 	show_title()
 
@@ -113,8 +114,8 @@ func show_workshop() -> void:
 	_show(workshop)
 
 
-func start_run() -> void:
-	if Game.level("net_return") >= 1 and not Game.scene_seen("net_return"):
+func start_run(skip_story := false) -> void:
+	if not skip_story and Game.level("net_return") >= 1 and not Game.scene_seen("net_return"):
 		show_scene("net_return", start_run)     # the first net brought home, before the next dive
 		return
 	Audio.play_music("music_dive")
@@ -142,6 +143,14 @@ func _play_in_dive(id: String) -> void:
 	layer.add_child(cutscene)
 	_overlay = layer
 	add_child(layer)
+
+
+# Debug: play any cutscene from wherever we are (over the dive, or as a full screen).
+func debug_play_scene(id: String) -> void:
+	if _screen is Run:
+		_play_in_dive(id)
+	else:
+		show_scene(id, show_workshop)
 
 
 func _on_run_finished(result: Dictionary) -> void:
@@ -211,7 +220,11 @@ func _unhandled_input(event: InputEvent) -> void:
 func _unhandled_key_input(event: InputEvent) -> void:
 	if not (event is InputEventKey and event.pressed and not event.echo):
 		return
-	match (event as InputEventKey).keycode:
+	var key := (event as InputEventKey).keycode
+	if key == KEY_F9 or key == KEY_QUOTELEFT:
+		Debug.toggle_panel()                    # the developer panel (autoload/debug.gd)
+		return
+	match key:
 		KEY_F1: Game.debug_reset()
 		KEY_F2: Game.debug_add_tags()
 		KEY_F3: Game.debug_mid_save()

@@ -30,6 +30,8 @@ func _ready() -> void:
 		run.pip.position = run.player.position
 		run.spawner._frontier = start_x - 300.0
 		run.spawner._scanned_to = start_x - 300.0
+	if "debug" in OS.get_cmdline_user_args():
+		Debug.toggle_panel()
 	run.finished.connect(func(result: Dictionary):
 		Game.bank_run(result)
 		print("RESULT ", result)

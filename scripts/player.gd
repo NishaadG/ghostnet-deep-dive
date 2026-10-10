@@ -171,6 +171,8 @@ func _has_room_to_loop() -> bool:
 func _swim(delta: float) -> void:
 	_tilt(delta)
 	oxygen -= delta
+	if Debug.is_on("oxygen"):
+		oxygen = stats["max_oxygen"]
 	vel.y += Balance.GRAVITY * stats["ballast_mult"] * delta                 # sinking weight
 	if looping:
 		_loop_step(delta)
@@ -184,7 +186,7 @@ func _swim(delta: float) -> void:
 	vel -= vel * drag * vel.length() * delta
 	thrusting = thrust_input and fuel > 0.0
 	if thrusting:
-		fuel -= delta
+		fuel = stats["max_fuel"] if Debug.is_on("fuel") else fuel - delta
 		vel += Vector2.RIGHT.rotated(angle) * Balance.THRUST * stats["thrust_mult"] * delta
 	position += vel * delta
 	if position.y < 0.0:                                                     # breached the surface
@@ -222,7 +224,7 @@ func _collide_with_terrain(delta: float) -> void:
 		var slope := (terrain.floor_y(position.x + 6.0) - terrain.floor_y(position.x - 6.0)) / 12.0
 		var normal := Vector2(slope, -1.0).normalized()
 		var into_speed := -vel.dot(normal)
-		if into_speed > Balance.CRASH_SPEED:
+		if into_speed > Balance.CRASH_SPEED and not Debug.is_on("god"):
 			finish("crash")
 			return
 		if into_speed > 0.0:
@@ -246,7 +248,7 @@ func _collide_with_terrain(delta: float) -> void:
 	_track_grind(grazing, delta)
 	if on_floor and vel.length() < Balance.REST_SPEED:
 		_rest_timer += delta
-		if _rest_timer >= Balance.REST_TIME:
+		if _rest_timer >= Balance.REST_TIME and not Debug.is_on("god"):
 			finish("rest")
 	else:
 		_rest_timer = 0.0
