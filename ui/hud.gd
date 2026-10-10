@@ -149,7 +149,7 @@ func _trick_popups() -> void:
 	for i in _tricks.size():
 		var trick: Dictionary = _tricks[_tricks.size() - 1 - i]
 		var a := clampf(trick["t"] * 1.5, 0.0, 1.0)
-		var y := 190.0 + i * 38.0 - (1.0 - a) * 10.0
+		var y := 250.0 + i * 36.0 - (1.0 - a) * 10.0
 		var text: String = trick["text"]
 		if trick["points"] > 0:
 			text += "   +%d" % trick["points"]
