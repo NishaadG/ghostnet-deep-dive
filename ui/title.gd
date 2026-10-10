@@ -24,6 +24,13 @@ func _ready() -> void:
 	_logo.draw.connect(_draw_logo)
 	add_child(_logo)
 	_build_buttons()
+	var fullscreen := UiKit.button("FULLSCREEN", Vector2(170, 42), Art.CYAN, false, 15)
+	fullscreen.position = Vector2(1090, 24)
+	fullscreen.pressed.connect(func():
+		Game.settings["fullscreen"] = not bool(Game.settings["fullscreen"])
+		Game.apply_settings()
+		Game.save_settings())
+	add_child(fullscreen)
 	var footer := UiKit.label("Cleanup helps one animal at a time. The problem only ends at its source.   |   SDG 14: Life Below Water", 15, false, Color(Art.ICE, 0.7))
 	footer.position = Vector2(0, 690)
 	footer.size = Vector2(1280, 24)

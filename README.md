@@ -14,7 +14,7 @@ the **Net Return** upgrade (Port Halo programme), which permanently removes loos
 | Nose down (dive, gain speed) | `D` or `Right` | hold the bottom half of the screen |
 | Nose up (glide, climb) | `A` or `Left` | hold the top half of the screen |
 | Boost (uses fuel) | `Space` | BOOST button |
-| Pause | `Esc` | (keyboard) |
+| Pause | `Esc` | round pause button (top right) |
 | Confirm / Dive | `Enter` | click |
 
 Tip: dive in off the ramp with the nose down (a steep entry keeps all your speed), plunge for speed, then pull up and glide.
@@ -60,10 +60,18 @@ Tip: dive in off the ramp with the nose down (a steep entry keeps all your speed
 - **Net walls** at 400, 1500, 2800 and 3600 m. Their damage persists between dives; the results screen shows how much is left.
 - **Endless mode** unlocks after the Lumen is freed.
 
+## Settings
+
+Master, music and sound-effect volume, with ON/OFF switches for music and sound effects; fullscreen; screen shake; touch controls. Saved in `user://settings.json`.
+
+## Phones and itch.io
+
+The game is landscape only and has touch controls (hold the top or bottom half of the screen to tilt, BOOST button, pause button). See `docs/ITCH.md` for packaging and publishing.
+
 ## Credits
 
 - **Art**: every shape, glow and animation is drawn by code in this project (neon vector style). No image assets are used in the game.
-- **Audio**: sound effects from the original kit in `assets/audio`.
+- **Audio**: sound effects from the original kit in `assets/audio`. The two music tracks (menu and dive) are original, synthesised by `tools/make_music.py`.
 - **Font**: Poppins, SIL Open Font License (`assets/fonts`).
 - **Engine**: Godot 4.6.2, GDScript, Compatibility renderer, no add-ons.
 
@@ -71,5 +79,5 @@ Tip: dive in off the ramp with the nose down (a steep entry keeps all your speed
 
 This game was built with **Claude Code** (Anthropic's Claude). Claude wrote all GDScript in `autoload/`, `scripts/`, `ui/` and `tests/`,
 the procedural art code (`art.gd`, `gear_art.gd`, `diver_rig.gd`, `decor_art.gd` and friends), the economy tuning, and the documents in this repository
-(`README.md`, `docs/CODE_TOUR.md`). The story premise (GHOSTNET, Nova, Pip, the Lumen, Net Return) is the team's Round 1 comic.
+(`README.md`, `docs/CODE_TOUR.md`, `docs/ITCH.md`) and the music generator `tools/make_music.py`. The story premise (GHOSTNET, Nova, Pip, the Lumen, Net Return) is the team's Round 1 comic.
 The sound effects and fonts in `assets/` were provided by the team's starter kit. The kit's pre-generated sprite and story images were replaced by the code-drawn art.

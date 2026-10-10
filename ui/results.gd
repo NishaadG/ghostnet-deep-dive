@@ -44,7 +44,7 @@ func _ready() -> void:
 	_fleet_label.size = Vector2(820, 80)
 	_fleet_label.modulate.a = 0.0
 	add_child(_fleet_label)
-	_hint = _label("Press Enter to continue", Vector2(230, 628), 18, false, Art.CYAN)
+	_hint = _label("Press Enter or tap to continue", Vector2(230, 628), 18, false, Art.CYAN)
 	_hint.modulate.a = 0.0
 	add_child(_hint)
 	_wall_layer = Control.new()
@@ -127,7 +127,8 @@ func _draw_wall_progress() -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	if not event.is_action_pressed("confirm"):
+	var tapped: bool = event is InputEventMouseButton and event.pressed
+	if not (event.is_action_pressed("confirm") or tapped):
 		return
 	if _done:
 		continue_pressed.emit()

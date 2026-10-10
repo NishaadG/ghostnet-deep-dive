@@ -11,6 +11,7 @@ func _ready() -> void:
 	Game.save_enabled = false
 	Game.debug_mid_save()
 	var start_x := 0.0
+	Game.settings["touch"] = "touch" in OS.get_cmdline_user_args()
 	for arg in OS.get_cmdline_user_args():
 		if arg.begins_with("x="):
 			start_x = float(arg.substr(2))

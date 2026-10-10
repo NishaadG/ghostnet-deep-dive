@@ -6,11 +6,15 @@ extends Node
 const ONE_SHOTS := ["alarm", "pickup", "net_hit", "o2", "splash", "launch", "wall_break", "cut",
 		"wall_hit", "buy", "run_end", "fuel", "click", "whale_song"]
 const POOL_SIZE := 10
+const MUSIC_TRACKS := ["music_menu", "music_dive"]
+const MUSIC_DB := -7.0         # level of the music track that is playing
+const SILENT_DB := -60.0
 
 var _streams := {}
 var _pool: Array[AudioStreamPlayer] = []
 var _loops := {}                 # name -> AudioStreamPlayer
 var _alarm_timer := 0.0
+var _current_music := ""
 
 
 func _ready() -> void:
@@ -28,7 +32,9 @@ func _ready() -> void:
 		player.bus = "SFX"
 		add_child(player)
 		_pool.append(player)
-	_make_loop("ambient_loop", "Music", -6.0)
+	_make_loop("ambient_loop", "Music", -13.0)
+	for track in MUSIC_TRACKS:
+		_make_loop(track, "Music", SILENT_DB)
 	_make_loop("boost_loop", "SFX", -4.0)
 	apply_volumes()
 	set_loop("ambient_loop", true)
@@ -56,6 +62,23 @@ func set_loop(sound: String, on: bool) -> void:
 		player.stop()
 
 
+# Fade to a music track (menus use music_menu, the dive uses music_dive). Safe to call every screen change.
+func play_music(track: String) -> void:
+	if track == _current_music:
+		return
+	_current_music = track
+	for name in MUSIC_TRACKS:
+		var player: AudioStreamPlayer = _loops[name]
+		var wanted: bool = name == track
+		if wanted and not player.playing:
+			player.volume_db = SILENT_DB
+			player.play()
+		var tween := create_tween()
+		tween.tween_property(player, "volume_db", MUSIC_DB if wanted else SILENT_DB, 1.5)
+		if not wanted:
+			tween.tween_callback(player.stop)
+
+
 # Called each frame during a dive with the oxygen fraction: beeps faster when critical.
 func low_oxygen_alarm(active: bool, delta: float) -> void:
 	_alarm_timer -= delta
@@ -69,6 +92,9 @@ func apply_volumes() -> void:
 	AudioServer.set_bus_volume_db(AudioServer.get_bus_index("Master"), linear_to_db(maxf(master, 0.0001)))
 	AudioServer.set_bus_volume_db(AudioServer.get_bus_index("Music"), linear_to_db(maxf(float(Game.settings["music"]), 0.0001)))
 	AudioServer.set_bus_volume_db(AudioServer.get_bus_index("SFX"), linear_to_db(maxf(float(Game.settings["sfx"]), 0.0001)))
+	# The ON/OFF switches mute a whole bus, so a slider can stay where the player left it.
+	AudioServer.set_bus_mute(AudioServer.get_bus_index("Music"), not bool(Game.settings["music_on"]))
+	AudioServer.set_bus_mute(AudioServer.get_bus_index("SFX"), not bool(Game.settings["sfx_on"]))
 
 
 func _make_loop(file_name: String, bus_name: String, volume_db: float) -> void:

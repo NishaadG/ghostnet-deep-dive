@@ -345,4 +345,7 @@ func _build_overlay() -> void:
 	if Game.settings["touch"] or DisplayServer.is_touchscreen_available():
 		hud_layer.add_child(TouchControls.new())
 	if Game.dives < 3:
-		hud.show_caption("D / Right: nose down, dive for speed.   A / Left: nose up, glide.   Space: boost", 7.0)
+		if Game.settings["touch"] or DisplayServer.is_touchscreen_available():
+			hud.show_caption("Hold the bottom half to dive for speed, the top half to glide up. BOOST for a push.", 8.0)
+		else:
+			hud.show_caption("D / Right: nose down, dive for speed.   A / Left: nose up, glide.   Space: boost", 7.0)

@@ -15,7 +15,8 @@ var wall_hp := {}              # wall index (as text) -> remaining HP; missing =
 var story_complete := false    # true after the Lumen is freed; unlocks Endless mode
 var endless_mode := false
 
-var settings := {"master": 0.8, "music": 0.7, "sfx": 0.9, "fullscreen": false, "shake": true, "touch": false, "last_slot": 0}
+var settings := {"master": 0.8, "music": 0.7, "sfx": 0.9, "music_on": true, "sfx_on": true,
+		"fullscreen": false, "shake": true, "touch": false, "last_slot": 0}
 var save_enabled := true       # tests switch this off so they never touch a real save
 var save_dir := "user://"      # tests point this at a throwaway folder name prefix
 var ui_theme := Theme.new()
@@ -27,6 +28,9 @@ func _ready() -> void:
 	_setup_input()
 	ui_theme.default_font = font
 	ui_theme.default_font_size = 18
+	# Phones start with the touch controls on.
+	if DisplayServer.is_touchscreen_available():
+		settings["touch"] = true
 	load_settings()
 
 

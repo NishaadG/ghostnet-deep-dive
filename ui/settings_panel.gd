@@ -18,15 +18,15 @@ func _ready() -> void:
 	title.position = Vector2(380, 98)
 	add_child(title)
 	var y := 170.0
-	for entry in [["Master volume", "master"], ["Music", "music"], ["Sound effects", "sfx"]]:
-		_add_slider(entry[0], entry[1], y)
-		y += 60.0
-	y += 8.0
+	_add_slider("Master volume", "master", y, "")
+	_add_slider("Music", "music", y + 56.0, "music_on")
+	_add_slider("Sound effects", "sfx", y + 112.0, "sfx_on")
+	y += 176.0
 	for entry in [["Fullscreen", "fullscreen"], ["Screen shake", "shake"], ["Touch controls", "touch"]]:
-		_add_toggle(entry[0], entry[1], y)
-		y += 56.0
+		_add_toggle(entry[0], entry[1], y, 750.0)
+		y += 46.0
 	var help := UiKit.label("Controls:  A / D or Left / Right = tilt      Space = boost      Esc = pause\nTouch: hold the top half of the screen to tilt up, the bottom half to tilt down.", 14, false, Color(Art.ICE, 0.75))
-	help.position = Vector2(380, 530)
+	help.position = Vector2(380, 534)
 	help.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	help.size = Vector2(520, 60)
 	add_child(help)
@@ -36,30 +36,35 @@ func _ready() -> void:
 	add_child(close)
 
 
-func _add_slider(title: String, key: String, y: float) -> void:
+func _add_slider(title: String, key: String, y: float, switch_key: String) -> void:
 	var label := UiKit.label(title, 20)
 	label.position = Vector2(380, y)
 	add_child(label)
 	var slider := NeonSlider.new()
-	slider.position = Vector2(600, y + 4)
-	slider.size = Vector2(300, 30)
+	slider.position = Vector2(590, y + 4)
+	slider.custom_minimum_size = Vector2(200 if switch_key != "" else 300, 30)     # the slider's own minimum would otherwise stretch it
+	slider.size = slider.custom_minimum_size
 	slider.value = float(Game.settings[key])
 	slider.changed.connect(func(value: float):
 		Game.settings[key] = value
 		Audio.apply_volumes()
 		Game.save_settings())
 	add_child(slider)
+	if switch_key != "":
+		_add_toggle("", switch_key, y, 810.0, 90.0)
 
 
-func _add_toggle(title: String, key: String, y: float) -> void:
-	var label := UiKit.label(title, 20)
-	label.position = Vector2(380, y)
-	add_child(label)
-	var button := UiKit.button("", Vector2(150, 40), Art.CYAN, false, 18)
-	button.position = Vector2(750, y - 4)
+func _add_toggle(title: String, key: String, y: float, x: float, width := 150.0) -> void:
+	if title != "":
+		var label := UiKit.label(title, 20)
+		label.position = Vector2(380, y)
+		add_child(label)
+	var button := UiKit.button("", Vector2(width, 40), Art.CYAN, false, 18)
+	button.position = Vector2(x, y - 4)
 	button.pressed.connect(func():
 		Game.settings[key] = not bool(Game.settings[key])
 		Game.apply_settings()
+		Audio.apply_volumes()
 		Game.save_settings()
 		_refresh_toggles())
 	add_child(button)

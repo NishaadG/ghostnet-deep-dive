@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+<defs><radialGradient id="g" cx="50%" cy="45%" r="60%"><stop offset="0" stop-color="#46f2e8" stop-opacity="0.9"/><stop offset="1" stop-color="#46f2e8" stop-opacity="0"/></radialGradient></defs>
+<rect width="128" height="128" rx="26" fill="#050b1a"/>
+<circle cx="64" cy="58" r="56" fill="url(#g)"/>
+<g stroke="#bfeff5" stroke-width="3" fill="none" stroke-linecap="round">
+<path d="M26 46 Q64 30 102 46"/><path d="M30 66 Q64 52 98 66"/><path d="M36 86 Q64 74 92 86"/>
+<path d="M44 40 L40 96"/><path d="M64 36 L64 98"/><path d="M84 40 L88 96"/></g>
+<circle cx="26" cy="46" r="5" fill="#ffb84a"/><circle cx="64" cy="36" r="5" fill="#ffb84a"/><circle cx="102" cy="46" r="5" fill="#ffb84a"/>
+<text x="64" y="118" font-family="Arial" font-weight="bold" font-size="16" fill="#ff4fa3" text-anchor="middle">GHOSTNET</text></svg>

@@ -5,14 +5,50 @@ extends Node
 
 var _screen: Node
 var _overlay: Node          # settings or pause menu on top of the current screen
+var _rotate_notice: Control # shown on a phone held upright: the game is landscape only
 
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS     # so the pause menu works while the dive is paused
+	_build_rotate_notice()
 	show_title()
 
 
+# Phones held upright get a "turn your phone" notice instead of a tiny letterboxed game.
+func _build_rotate_notice() -> void:
+	var layer := CanvasLayer.new()
+	layer.layer = 100
+	add_child(layer)
+	_rotate_notice = Control.new()
+	_rotate_notice.size = Vector2(1280, 720)
+	_rotate_notice.visible = false
+	layer.add_child(_rotate_notice)
+	var shade := ColorRect.new()
+	shade.color = Color(Art.INK, 0.96)
+	shade.size = Vector2(1280, 720)
+	_rotate_notice.add_child(shade)
+	var text := UiKit.label("Please turn your phone sideways", 44, true, Art.ICE)
+	text.position = Vector2(0, 300)
+	text.size = Vector2(1280, 70)
+	text.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_rotate_notice.add_child(text)
+	var sub := UiKit.label("GHOSTNET plays in landscape mode", 22, false, Art.CYAN)
+	sub.position = Vector2(0, 372)
+	sub.size = Vector2(1280, 40)
+	sub.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_rotate_notice.add_child(sub)
+
+
+func _process(_delta: float) -> void:
+	var window_size := get_window().size
+	var portrait := window_size.y > window_size.x * 1.1
+	_rotate_notice.visible = portrait
+	if portrait and _screen is Run and not get_tree().paused and _overlay == null:
+		_open_pause()                       # do not let a dive run while the phone is upright
+
+
 func show_title() -> void:
+	Audio.play_music("music_menu")
 	var title := Title.new()
 	title.play_pressed.connect(show_slots)
 	title.continue_pressed.connect(func(slot: int): _begin(slot, false))
@@ -22,6 +58,7 @@ func show_title() -> void:
 
 
 func show_slots() -> void:
+	Audio.play_music("music_menu")
 	var slots := SlotSelect.new()
 	slots.slot_chosen.connect(_begin)
 	slots.back_pressed.connect(show_title)
@@ -49,6 +86,7 @@ func show_cards(lines: Array, then: Callable) -> void:
 
 
 func show_workshop() -> void:
+	Audio.play_music("music_menu")
 	var workshop := Workshop.new()
 	workshop.dive_pressed.connect(start_run)
 	workshop.menu_pressed.connect(show_title)
@@ -56,6 +94,7 @@ func show_workshop() -> void:
 
 
 func start_run() -> void:
+	Audio.play_music("music_dive")
 	var run := Run.new()
 	run.process_mode = Node.PROCESS_MODE_PAUSABLE
 	run.finished.connect(_on_run_finished)
