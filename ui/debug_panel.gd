@@ -53,7 +53,8 @@ func _info_text() -> String:
 
 
 func _cheat_label(cheat: String) -> String:
-	return {"god": "God mode", "oxygen": "Infinite O2", "fuel": "Infinite fuel", "wall_kill": "Walls die in one hit"}[cheat]
+	return {"god": "God mode (no crashes, creatures harmless)", "oxygen": "Infinite O2", "fuel": "Infinite fuel",
+			"wall_kill": "Walls die in one hit", "no_creatures": "No sea creatures"}[cheat]
 
 
 # ---- Layout ----
@@ -68,12 +69,14 @@ func _build() -> void:
 	_grid(teleports)
 	_metres_row()
 	_heading("CHEATS")
-	for cheat in ["god", "oxygen", "fuel", "wall_kill"]:
+	for cheat in ["god", "oxygen", "fuel", "wall_kill", "no_creatures"]:
 		_toggle(cheat)
 	_grid([["Fill O2 + fuel", Debug.fill_supplies], ["+400 speed", func(): Debug.add_speed(400.0)], ["Stop", Debug.stop]])
 	_heading("SPAWN IN FRONT")
 	_grid([["Net", func(): Debug.spawn("net")], ["Net + animal", func(): Debug.spawn("animal")],
-			["O2 canister", func(): Debug.spawn("o2")], ["Fuel cell", func(): Debug.spawn("fuel")]])
+			["O2 canister", func(): Debug.spawn("o2")], ["Fuel cell", func(): Debug.spawn("fuel")],
+			["Piranha school", func(): Debug.spawn("piranha")], ["Puffer fish", func(): Debug.spawn("puffer")],
+			["Electric ray", func(): Debug.spawn("ray")]])
 	_heading("TRICK TESTS")
 	_grid([["+500 style", func(): Debug.style_event("points")], ["2 flips", func(): Debug.style_event("flip")],
 			["Loop", func(): Debug.style_event("loop")], ["Net chain x4", func(): Debug.style_event("chain")],

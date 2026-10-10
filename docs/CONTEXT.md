@@ -20,6 +20,8 @@ Everything below is built, committed, and the tests pass.
   a scene after each wall is torn, the ending (pages 5 to 8), and a Net Return scene. Radio lines from Pip and Captain Vale during dives.
   The fleet tags escalate: Boat 11 (wall 1), a scratched "Boat 0_" (wall 2), then BOAT 07 · CAPT. VALE on the Lumen.
 - The dive: ramp launch, air arc, underwater flight model, boost, oxygen timer, floor/ceiling collision, camera, zones (Reef, Drowned City, Slope, Trench, Abyss).
+- Sea creatures (`scripts/hazard.gd`, numbers in `Balance.HAZARD_RATE` and the `PIRANHA_*`, `PUFFER_*`, `RAY_*` constants):
+  piranha schools, puffer fish, electric rays. Pip warns about each one once per save. None within 500 px before a net wall.
 - Nets (with trapped animals), pickups along glide arcs, plastic, Pip the drone, 4 persistent net walls (HP saved between dives), the whale ending, Endless mode.
 - Workshop (shop): 3 gear slots with 6 named tiers each (Craft, Booster, Cutter), 5 tuning upgrades, Net Return ("Port Halo" tab), live rig preview, journey/wall progress.
 - Art: **100% drawn in code** in a neon vector style. No sprite files are used in the game.
@@ -71,7 +73,8 @@ Tests write to throwaway files (`Game.save_dir = "user://test_"`, `Game.save_ena
 | `scripts/run.gd` | One dive: builds world, camera, walls, stats, result dictionary |
 | `scripts/player.gd` | The flight model (`_swim`) and collisions |
 | `scripts/terrain.gd` | Staircase generation, `floor_y/ceiling_y`, drawing, scenery |
-| `scripts/spawner.gd` | Nets, pickups, plastic; Net Return scales net density here |
+| `scripts/spawner.gd` | Nets, pickups, plastic, sea creatures; Net Return scales net density here |
+| `scripts/hazard.gd` | Piranhas, puffer fish, electric rays: behaviour, hit test, drawing (`menu_shot.tscn -- screen=creatures` shows them all) |
 | `scripts/*_art.gd`, `diver_rig.gd`, `net.gd`, `pickup.gd`, `animal.gd`, `whale.gd`, `net_wall.gd`, `pip.gd`, `backdrop.gd`, `launch_site.gd` | Drawn-in-code visuals |
 | `scripts/main.gd` | Screen switcher, pause, rotate notice, music per screen |
 | `ui/` | title, slot_select, workshop (+ shop_rows), results, cutscene, story_gallery, settings_panel, pause_menu, hud, ui_kit |

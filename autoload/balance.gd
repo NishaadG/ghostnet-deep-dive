@@ -69,6 +69,33 @@ const ANIMAL_BURST := 150.0          # px/s added when an animal swims free
 const NET_ANIMAL_CHANCE := 0.2       # 1 net in 5 holds an animal
 const NET_RATE := {"reef": 0.9, "city": 1.4, "slope": 1.1, "trench": 0.9}   # loose nets per 600 px slice
 
+# ---- Sea creatures in the way (see scripts/hazard.gd). They cannot be cut. ----
+# How many of each per 600 px slice, by zone. None in the first stretch, so the launch stays calm.
+const HAZARD_RATE := {
+	"reef": {"puffer": 0.25},
+	"city": {"piranha": 0.3, "puffer": 0.25},
+	"slope": {"piranha": 0.25, "puffer": 0.15, "ray": 0.2},
+	"trench": {"piranha": 0.15, "ray": 0.35},
+	"abyss": {"ray": 0.3},
+}
+const HAZARD_WALL_GAP := 500.0       # px kept clear before a net wall, so the wall hit is about your speed
+const PIRANHA_SENSE := 420.0         # px: the school darts at Nova inside this range
+const PIRANHA_SPEED := 360.0         # px/s while chasing
+const PIRANHA_OUTRUN := 650.0        # Nova faster than this blasts through without a bite
+const PIRANHA_OXYGEN := 3.0          # seconds of oxygen a bite costs
+const PIRANHA_SLOW := 0.8            # speed kept after a bite
+const PUFFER_SENSE := 230.0          # px: it puffs up when Nova is this close
+const PUFFER_KEEP := 0.55            # speed kept after bouncing off the spikes
+const PUFFER_OXYGEN := 1.5
+const RAY_PERIOD := 3.4              # seconds between discharges
+const RAY_CHARGE := 0.8              # it glows brighter for this long before a discharge (the warning)
+const RAY_DISCHARGE := 0.6           # the field is live for this long
+const RAY_FIELD := 150.0             # px radius of the electric field
+const RAY_STUN := 0.8                # seconds Nova cannot steer or boost
+const RAY_SLOW := 0.7
+const RAY_OXYGEN := 2.0
+const CLOSE_CALL_POINTS := 60.0      # style points for blasting through a piranha school
+
 # ---- Net walls: the story goals. HP persists between dives. ----
 # damage on contact = speed * ballast_mult * cutter_mult
 const WALLS := [

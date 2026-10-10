@@ -36,11 +36,6 @@ func show_caption(text: String, seconds: float) -> void:
 	_caption_t = seconds
 
 
-func show_trick(text: String, points: int) -> void:
-	_tricks.append({"text": text, "points": points, "t": 2.4})
-	if _tricks.size() > 5:
-		_tricks.pop_front()
-	Audio.play("pickup", -6.0, 1.5 if points > 0 else 1.2)
 # A radio line from Pip, Nova or Captain Vale (see Story). It types out, stays, then fades.
 func show_radio(who: String, text: String) -> void:
 	if _radio_t > RADIO_TIME - RADIO_MIN:
@@ -49,6 +44,12 @@ func show_radio(who: String, text: String) -> void:
 	_radio_who = who
 	_radio_text = text
 	_radio_t = RADIO_TIME
+func show_trick(text: String, points: int, quiet := false) -> void:
+	_tricks.append({"text": text, "points": points, "t": 2.4})
+	if _tricks.size() > 5:
+		_tricks.pop_front()
+	if not quiet:                       # creature hits play their own sound
+		Audio.play("pickup", -6.0, 1.5 if points > 0 else 1.2)
 
 
 func show_towing(reason: String) -> void:
@@ -215,7 +216,7 @@ func _radio() -> void:
 	var a := clampf(minf(_radio_t, RADIO_TIME - _radio_t) * 4.0, 0.0, 1.0)
 	var speaker: Dictionary = Story.SPEAKERS.get(_radio_who, Story.SPEAKERS["pip"])
 	var color: Color = speaker["color"]
-	var rect := Rect2(20, 126, 470, 82)
+	var rect := Rect2(790, 130, 470, 82)             # right side: the left is for trick pop-ups
 	draw_style_box(UiKit.glass(color, 0.7 * a), rect)
 	draw_circle(rect.position + Vector2(18, 20), 4.0 + sin(Time.get_ticks_msec() / 120.0), Color(color, a))   # "on air" light
 	draw_string(Game.font_bold, rect.position + Vector2(30, 26), String(speaker["name"]), HORIZONTAL_ALIGNMENT_LEFT, -1, 13, Color(color, a))

@@ -48,6 +48,18 @@ func _ready() -> void:
 	run.debug_spawn("animal")
 	run.debug_spawn("o2")
 	check(run.spawner.nets.size() == nets_before + 1 and run.spawner.pickups.size() >= 1, "spawn adds a net and a pickup")
+	for creature in ["piranha", "puffer", "ray"]:
+		run.debug_spawn(creature)
+		var last: Hazard = run.spawner.hazards[-1]
+		check(last.kind == creature, "spawn adds a %s" % creature)
+	# god mode: a creature touch does no harm
+	Debug.cheats["god"] = true
+	var oxygen := run.player.oxygen
+	run._on_hazard_touched(run.spawner.hazards[-1])
+	check(run.player.oxygen == oxygen and run.player.stunned == 0.0, "god mode: creatures are harmless")
+	Debug.cheats["god"] = false
+	run.debug_teleport(1600.0)
+	check(run.spawner.hazards.is_empty(), "a teleport clears the creatures too")
 	# helpers through the Debug singleton (they use main, so only the ones that do not)
 	Debug.cheats["wall_kill"] = true
 	check(Debug.is_on("wall_kill"), "cheat flags can be switched on")

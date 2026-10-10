@@ -13,7 +13,7 @@ const TELEPORTS := [
 ]
 
 var main: Node                      # set by main.gd, so we can read the current screen
-var cheats := {"god": false, "oxygen": false, "fuel": false, "wall_kill": false}
+var cheats := {"god": false, "oxygen": false, "fuel": false, "wall_kill": false, "no_creatures": false}
 var _panel: Node
 
 

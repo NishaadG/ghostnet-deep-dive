@@ -32,6 +32,11 @@ Every dive is scored for style and ranked D, C, B, A or S. Style points add a sm
 
 Tip: dive in off the ramp with the nose down (a steep entry keeps all your speed), plunge for speed, then pull up and glide.
 
+Sea creatures get in the way (they cannot be cut):
+- **Piranhas** (Drowned City and deeper): a school darts at you; a bite costs oxygen. Fly fast enough and you blast straight through for style points.
+- **Puffer fish**: harmless until you get close, then they puff up into spiky balls that bounce you back. Go round, or get past before they puff.
+- **Electric rays** (Slope and deeper): they glow brighter before they discharge an electric ring that stuns you (no steering or boost for a moment). Pass while they are dark.
+
 ## Debug keys (work in the web build too)
 
 | Key | Effect |
@@ -49,8 +54,8 @@ Tip: dive in off the ramp with the nose down (a steep entry keeps all your speed
 Press **F9** (or the `` ` `` key) on any screen to open the developer panel on the right side of the screen. It has:
 
 - **Teleport** (in a dive): jump to the start, each wall, each zone, the next wall, the next canyon or drop, or any distance you type in metres. Going backwards rebuilds the same trench.
-- **Cheats:** God mode (no crash or rest end), infinite O2, infinite fuel, walls that die in one hit, fill supplies, +400 speed, stop.
-- **Spawn in front:** a net, a net with an animal, an O2 canister, a fuel cell.
+- **Cheats:** God mode (no crash or rest end, sea creatures harmless), infinite O2, infinite fuel, walls that die in one hit, no sea creatures, fill supplies, +400 speed, stop.
+- **Spawn in front:** a net, a net with an animal, an O2 canister, a fuel cell, a piranha school, a puffer fish, an electric ray.
 - **Trick tests:** add style points, flips, a loop, a net chain, a grind, a canyon clear (to check pop-ups and the results panel).
 - **Story scenes:** play any of the 10 cutscenes, over the dive or as a full screen.
 - **Game state:** +500 tags, max all gear, tear or restore all walls, unlock Endless and scenes, reset the slot, load the mid-game save, jump to the title, workshop or a new dive.
@@ -65,7 +70,7 @@ All of it lives in `autoload/debug.gd` (actions) and `ui/debug_panel.gd` (button
    Command line: `godot --headless --path . --export-release Web build/web/index.html`.
    Serve the folder with any static web server and open it in a browser (the Web export cannot run from `file://`).
 3. Tests (headless): `godot --headless --path . res://tests/smoke.tscn`, `res://tests/progression.tscn`, `res://tests/economy.tscn`,
-   `res://tests/cutscenes.tscn` (every scene plays through), `res://tests/story_flow.tscn` (scenes are wired into the dive).
+   `res://tests/cutscenes.tscn` (every scene plays through), `res://tests/story_flow.tscn` (scenes are wired into the dive), `res://tests/hazards.tscn` (sea creatures).
 
 ## Comic to game
 
