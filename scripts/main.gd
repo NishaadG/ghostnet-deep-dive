@@ -171,33 +171,49 @@ func show_results(result: Dictionary) -> void:
 	_show(results)
 
 
-# ---- Overlays: settings (anywhere) and pause (during a dive) ----
+# ---- Overlays: settings and the Esc menu ----
+# Overlays sit on their own CanvasLayer, above the dive's darkness and HUD, so they are always readable.
+
+func _add_overlay(node: Control) -> void:
+	_close_overlay()
+	var layer := CanvasLayer.new()
+	layer.layer = 60
+	layer.process_mode = Node.PROCESS_MODE_ALWAYS
+	layer.add_child(node)
+	_overlay = layer
+	add_child(layer)
+
 
 func _open_settings() -> void:
-	_close_overlay()
 	var panel := SettingsPanel.new()
 	panel.closed.connect(_close_overlay)
-	_overlay = panel
-	add_child(panel)
+	_add_overlay(panel)
 
 
+# Esc: in a dive this pauses; on other screens it is a menu over the screen.
 func _open_pause() -> void:
-	get_tree().paused = true
+	var in_dive := _screen is Run
+	if in_dive:
+		get_tree().paused = true
 	var menu := PauseMenu.new()
+	menu.in_dive = in_dive
+	menu.show_main_menu = not (_screen is Title)
 	menu.resume_pressed.connect(_resume)
 	menu.settings_pressed.connect(func():
-		_close_overlay()
 		var panel := SettingsPanel.new()
 		panel.process_mode = Node.PROCESS_MODE_ALWAYS
-		panel.closed.connect(_open_pause)
-		_overlay = panel
-		add_child(panel))
+		panel.closed.connect(_open_pause)                # back to the Esc menu
+		_add_overlay(panel))
 	menu.quit_pressed.connect(func():
 		_resume()
 		Engine.time_scale = 1.0
 		show_workshop())
-	_overlay = menu
-	add_child(menu)
+	menu.menu_pressed.connect(func():
+		_resume()
+		Engine.time_scale = 1.0
+		show_title())
+	menu.exit_pressed.connect(func(): get_tree().quit())
+	_add_overlay(menu)
 
 
 func _resume() -> void:
@@ -211,9 +227,14 @@ func _close_overlay() -> void:
 		_overlay = null
 
 
+# Esc opens the menu on every screen except cutscenes (there Esc skips the scene).
 func _unhandled_input(event: InputEvent) -> void:
-	if event.is_action_pressed("pause") and _screen is Run and _overlay == null and not (_screen as Run).ended:
-		_open_pause()
+	if not event.is_action_pressed("pause") or _overlay != null or _screen is Cutscene:
+		return
+	if _screen is Run and (_screen as Run).ended:
+		return                                    # Pip is already towing Nova up
+	_open_pause()
+	get_viewport().set_input_as_handled()
 
 
 # Debug keys, also live in the web build (listed in the README). Only in DEBUG mode.
