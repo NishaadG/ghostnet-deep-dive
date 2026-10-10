@@ -2,9 +2,11 @@ class_name Spawner
 extends Node2D
 # Fills the water ahead of Nova with nets, pickups and plastic, and reports touches.
 # The Net Return upgrade works here: stats["net_density"] scales how many loose nets exist.
+# It also places the sea creatures that get in the way (Hazard: piranhas, puffer fish, electric rays).
 
 signal net_touched(net: Net)
 signal pickup_touched(pickup: Pickup)
+signal hazard_touched(hazard: Hazard)
 
 const SLICE := 600.0        # world is filled in slices this wide
 const AHEAD := 3200.0
@@ -16,6 +18,8 @@ var stats: Dictionary
 var rng := RandomNumberGenerator.new()
 var nets: Array[Net] = []
 var pickups: Array[Pickup] = []
+var hazards: Array[Hazard] = []
+var nova: Player                     # the creatures need to know where Nova is
 var loose_net_x: Array[float] = []   # x of every loose net ever placed, for the results line
 var _frontier := FIRST_X
 var _scanned_to := 0.0
@@ -28,9 +32,11 @@ func setup(new_terrain: Terrain, new_stats: Dictionary, seed_value: int) -> void
 
 
 func update(player: Player) -> void:
+	nova = player
 	while _frontier < player.position.x + AHEAD:
 		_spawn_nets(_frontier)
 		_spawn_loose_pickups(_frontier)
+		_spawn_hazards(_frontier)
 		_frontier += SLICE
 	_spawn_arcs()
 	_check_touches(player)
@@ -64,6 +70,39 @@ func _spawn_nets(x0: float) -> void:
 		add_child(net)
 		nets.append(net)
 		loose_net_x.append(x)
+
+
+# Each zone has its own creatures (Balance.HAZARD_RATE). None just before a net wall.
+func _spawn_hazards(x0: float) -> void:
+	var rates: Dictionary = Balance.HAZARD_RATE.get(Balance.zone_id_at(x0), {})
+	for creature in rates:
+		var expected: float = rates[creature]
+		if rng.randf() >= expected:
+			continue
+		var x := x0 + rng.randf() * SLICE
+		if _near_wall(x):
+			continue
+		var top := maxf(terrain.ceiling_y(x), 0.0) + 90.0
+		var bottom := terrain.floor_y(x) - 90.0
+		var y := rng.randf_range(top, maxf(top, bottom))
+		if creature == "ray":
+			y = maxf(top, bottom - rng.randf_range(0.0, 120.0))       # rays keep low, near the seabed
+		var hazard := Hazard.new()
+		hazard.setup(creature, Vector2(x, y), rng.randi())
+		hazard.player = nova
+		hazard.terrain = terrain
+		add_child(hazard)
+		hazards.append(hazard)
+
+
+func _near_wall(x: float) -> bool:
+	if Game.endless_mode:
+		return false
+	for wall in Balance.WALLS:
+		var wall_x: float = wall["at_m"] * Balance.PX_PER_M
+		if x > wall_x - Balance.HAZARD_WALL_GAP and x < wall_x + 200.0:
+			return true
+	return false
 
 
 func _spawn_loose_pickups(x0: float) -> void:
@@ -130,6 +169,9 @@ func _check_touches(player: Player) -> void:
 	for net in nets:
 		if not net.is_cut and net.position.distance_to(player.position) < net.radius + reach:
 			net_touched.emit(net)
+	for hazard in hazards:
+		if hazard.touching(player.position):
+			hazard_touched.emit(hazard)
 	for pickup in pickups:
 		if pickup.collected:
 			continue
@@ -161,3 +203,10 @@ func _remove_behind(x: float) -> void:
 		else:
 			kept_pickups.append(pickup)
 	pickups = kept_pickups
+	var kept_hazards: Array[Hazard] = []
+	for hazard in hazards:
+		if hazard.position.x < x:
+			hazard.queue_free()
+		else:
+			kept_hazards.append(hazard)
+	hazards = kept_hazards

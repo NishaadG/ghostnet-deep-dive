@@ -14,10 +14,17 @@ shader_type canvas_item;
 uniform vec2 pip_uv = vec2(0.5, 0.5);
 uniform float darkness = 0.0;
 uniform float radius = 0.36;
+uniform vec3 lights[8];          // glowing creatures: xy = screen position (0..1), z = light radius (0 = off)
 void fragment() {
 	vec2 aspect = vec2(1.7778, 1.0);
 	float d = distance(UV * aspect, pip_uv * aspect);
 	float hole = smoothstep(radius * 0.35, radius, d);
+	for (int i = 0; i < 8; i++) {
+		if (lights[i].z > 0.0) {
+			float dl = distance(UV * aspect, lights[i].xy * aspect);
+			hole = min(hole, smoothstep(lights[i].z * 0.3, lights[i].z, dl));
+		}
+	}
 	float vignette = smoothstep(0.55, 1.15, distance(UV, vec2(0.5)) * 1.45) * 0.45;
 	COLOR = vec4(0.0, 0.005, 0.02, clamp(darkness * hole + vignette, 0.0, 0.97));
 }
@@ -76,6 +83,7 @@ func _ready() -> void:
 	spawner.setup(terrain, stats, randi())
 	spawner.net_touched.connect(_on_net_touched)
 	spawner.pickup_touched.connect(_on_pickup_touched)
+	spawner.hazard_touched.connect(_on_hazard_touched)
 	add_child(spawner)
 	player = Player.new()
 	add_child(player)
@@ -128,6 +136,7 @@ func _process(delta: float) -> void:
 		_spawn_walls()
 		_check_walls()
 		_story_checks()
+		_hazard_warnings()
 		_zone_banner()
 		max_depth_m = maxf(max_depth_m, player.position.y / Balance.PX_PER_M)
 		top_speed = maxf(top_speed, player.vel.length())
@@ -163,6 +172,17 @@ func _update_darkness(amount: float) -> void:
 	var shader_material := _darkness.material as ShaderMaterial
 	shader_material.set_shader_parameter("pip_uv", screen_pos / Vector2(1280, 720))
 	shader_material.set_shader_parameter("darkness", amount)
+	# Glowing creatures light up the dark around them, so a ray's warning flash is visible in the Trench.
+	var lights := PackedVector3Array()
+	lights.resize(8)
+	var count := 0
+	for hazard in spawner.hazards:
+		var light := hazard.light_radius()
+		var uv := get_viewport().get_canvas_transform() * hazard.global_position / Vector2(1280, 720)
+		if light > 0.0 and count < 8 and uv.x > -0.2 and uv.x < 1.2 and uv.y > -0.2 and uv.y < 1.2:
+			lights[count] = Vector3(uv.x, uv.y, light * camera.zoom.x)
+			count += 1
+	shader_material.set_shader_parameter("lights", lights)
 
 
 # ---- Net walls ----
@@ -345,6 +365,45 @@ func _on_net_touched(net: Net) -> void:
 		Audio.play("pickup", -2.0, 1.3)
 	_bump(6.0)
 	_hit_stop(0.05)
+
+
+# What each creature does to Nova (numbers in balance.gd, the creatures themselves in hazard.gd).
+func _on_hazard_touched(hazard: Hazard) -> void:
+	hazard.on_hit()
+	match hazard.kind:
+		"piranha":
+			if player.vel.length() > Balance.PIRANHA_OUTRUN:
+				style.close_call("TOO FAST TO BITE")          # speed beats the school
+				return
+			player.oxygen = maxf(0.0, player.oxygen - Balance.PIRANHA_OXYGEN)
+			player.vel *= Balance.PIRANHA_SLOW
+			hud.show_trick("PIRANHA BITE  -%d s O2" % Balance.PIRANHA_OXYGEN, 0, true)
+			Audio.play("net_hit", 0.0, 1.7)
+			_bump(10.0)
+		"puffer":
+			var away := (player.position - hazard.position).normalized()
+			player.vel = away * player.vel.length() * Balance.PUFFER_KEEP    # bounced off the spikes
+			player.angle = clampf(away.angle(), Balance.ANGLE_MIN, Balance.ANGLE_MAX)
+			player.oxygen = maxf(0.0, player.oxygen - Balance.PUFFER_OXYGEN)
+			hud.show_trick("SPIKED!", 0, true)
+			Audio.play("wall_hit", -2.0, 1.6)
+			_bump(12.0)
+		"ray":
+			player.stun(Balance.RAY_STUN)
+			player.vel *= Balance.RAY_SLOW
+			player.oxygen = maxf(0.0, player.oxygen - Balance.RAY_OXYGEN)
+			hud.show_trick("ZAPPED!", 0, true)
+			Audio.play("alarm", -2.0, 2.2)
+			_bump(14.0)
+	style.break_chain()
+
+
+func _hazard_warnings() -> void:
+	for hazard in spawner.hazards:
+		var tip := "tip_" + hazard.kind
+		if not Game.scene_seen(tip) and absf(hazard.position.x - player.position.x) < 900.0:
+			Game.seen_scenes.append(tip)              # saved with the slot: each warning plays once per save
+			_radio_once(tip, "pip", Story.HAZARD_LINES[hazard.kind])
 
 
 func _on_pickup_touched(pickup: Pickup) -> void:

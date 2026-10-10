@@ -70,6 +70,11 @@ func zone_cleared(kind: String, size_px: float) -> void:
 		_add("Drop clears", "DROP CLEAR", Balance.DROP_POINTS + size_px * 0.04)
 
 
+# Blasted through a piranha school too fast for a bite.
+func close_call(label: String) -> void:
+	_add("Close calls", label, Balance.CLOSE_CALL_POINTS)
+
+
 func _add(category: String, label: String, base_points: float, use_multiplier := true) -> void:
 	var points := int(round(base_points * (multiplier if use_multiplier else 1.0)))
 	total += points

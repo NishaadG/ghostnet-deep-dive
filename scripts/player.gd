@@ -26,6 +26,7 @@ var fuel := 0.0
 var thrusting := false
 var touching_rock := false     # true on a frame where she touched the floor or ceiling
 var looping := false
+var stunned := 0.0             # seconds left of an electric ray's stun: no steering, no boost
 
 # Input is read into these two fields; tests and the touch UI can fill them instead.
 var scripted := false
@@ -69,6 +70,13 @@ func _physics_process(delta: float) -> void:
 	if not scripted:
 		tilt_input = Input.get_axis("tilt_up", "tilt_down")
 		thrust_input = Input.is_action_pressed("thrust")
+	if stunned > 0.0:                                    # zapped: the controls do nothing for a moment
+		stunned = maxf(0.0, stunned - delta)
+		tilt_input = 0.0
+		thrust_input = false
+		rig.modulate = Color(Art.CYAN) if int(stunned * 20.0) % 2 == 0 else Color.WHITE
+	elif rig and rig.modulate != Color.WHITE:
+		rig.modulate = Color.WHITE
 	_ceiling_cooldown = maxf(0.0, _ceiling_cooldown - delta)
 	_floor_hit_cooldown = maxf(0.0, _floor_hit_cooldown - delta)
 	match state:
@@ -264,6 +272,11 @@ func _track_grind(grazing: bool, delta: float) -> void:
 
 func add_oxygen(seconds: float) -> void:
 	oxygen = minf(oxygen + seconds, stats["max_oxygen"])
+
+
+func stun(seconds: float) -> void:
+	stunned = maxf(stunned, seconds)
+	looping = false
 
 
 func add_fuel(fraction_of_tank: float) -> void:

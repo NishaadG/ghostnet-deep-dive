@@ -44,11 +44,12 @@ func show_radio(who: String, text: String) -> void:
 	_radio_who = who
 	_radio_text = text
 	_radio_t = RADIO_TIME
-func show_trick(text: String, points: int) -> void:
+func show_trick(text: String, points: int, quiet := false) -> void:
 	_tricks.append({"text": text, "points": points, "t": 2.4})
 	if _tricks.size() > 5:
 		_tricks.pop_front()
-	Audio.play("pickup", -6.0, 1.5 if points > 0 else 1.2)
+	if not quiet:                       # creature hits play their own sound
+		Audio.play("pickup", -6.0, 1.5 if points > 0 else 1.2)
 
 
 func show_towing(reason: String) -> void:

@@ -32,6 +32,11 @@ Every dive is scored for style and ranked D, C, B, A or S. Style points add a sm
 
 Tip: dive in off the ramp with the nose down (a steep entry keeps all your speed), plunge for speed, then pull up and glide.
 
+Sea creatures get in the way (they cannot be cut):
+- **Piranhas** (Drowned City and deeper): a school darts at you; a bite costs oxygen. Fly fast enough and you blast straight through for style points.
+- **Puffer fish**: harmless until you get close, then they puff up into spiky balls that bounce you back. Go round, or get past before they puff.
+- **Electric rays** (Slope and deeper): they glow brighter before they discharge an electric ring that stuns you (no steering or boost for a moment). Pass while they are dark.
+
 ## Debug keys (work in the web build too)
 
 | Key | Effect |
@@ -49,7 +54,7 @@ Tip: dive in off the ramp with the nose down (a steep entry keeps all your speed
    Command line: `godot --headless --path . --export-release Web build/web/index.html`.
    Serve the folder with any static web server and open it in a browser (the Web export cannot run from `file://`).
 3. Tests (headless): `godot --headless --path . res://tests/smoke.tscn`, `res://tests/progression.tscn`, `res://tests/economy.tscn`,
-   `res://tests/cutscenes.tscn` (every scene plays through), `res://tests/story_flow.tscn` (scenes are wired into the dive).
+   `res://tests/cutscenes.tscn` (every scene plays through), `res://tests/story_flow.tscn` (scenes are wired into the dive), `res://tests/hazards.tscn` (sea creatures).
 
 ## Comic to game
 

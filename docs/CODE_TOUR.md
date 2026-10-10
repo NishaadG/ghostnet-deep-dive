@@ -15,7 +15,10 @@ tunable number lives in one file: `autoload/balance.gd`.
 - `run.gd`: one dive. Builds the world, follows Nova with the camera, handles net walls, tracks stats, builds the result.
 - `player.gd`: Nova's physics and input (the flight model). `diver_rig.gd` + `gear_art.gd`: how she and her gear are drawn.
 - `terrain.gd`: generates the staircase floor, answers `floor_y(x)` / `ceiling_y(x)`, draws rock and scenery. `decor_art.gd` draws corals, towers, crystals.
-- `spawner.gd`: places nets, pickups and plastic ahead of Nova, and reports touches. `net.gd`, `pickup.gd`, `animal.gd`, `net_wall.gd`, `whale.gd`, `pip.gd`.
+- `spawner.gd`: places nets, pickups, plastic and sea creatures ahead of Nova, and reports touches.
+- `hazard.gd`: the sea creatures: piranha schools (chase, bite unless Nova is fast), puffer fish (puff up when close, bounce her)
+  and electric rays (charge, then discharge a ring that stuns). `Run._on_hazard_touched` applies what a touch does; numbers in `balance.gd`.
+  Glowing creatures are extra lights in the darkness shader, so a ray's warning shows even in the Trench. `net.gd`, `pickup.gd`, `animal.gd`, `net_wall.gd`, `whale.gd`, `pip.gd`.
 - `backdrop.gd`, `launch_site.gd`: the water gradient with parallax ridges and the sky, boat and ramp.
 - `main.gd`: the screen switcher (Title, Slots, Workshop, Run, Results, cutscenes, Story gallery).
 

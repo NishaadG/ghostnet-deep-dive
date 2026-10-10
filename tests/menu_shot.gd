@@ -47,6 +47,22 @@ func _ready() -> void:
 			return
 		"gallery":
 			screen = StoryGallery.new()
+		"creatures":                         # every sea creature, close up, in each of its states
+			var back := MenuScene.new()
+			back.show_diver = false
+			back.dim = 0.35
+			add_child(back)
+			var lineup := [["piranha", Vector2(170, 330), 0.0], ["puffer", Vector2(420, 330), 0.0], ["puffer", Vector2(600, 330), 1.0],
+					["ray", Vector2(880, 250), 0.0], ["ray", Vector2(1100, 470), 1.0]]
+			for entry in lineup:
+				var hazard := Hazard.new()
+				hazard.setup(entry[0], entry[1], 5)
+				hazard.puff = entry[2]
+				if entry[0] == "ray" and entry[2] > 0.0:
+					hazard._cycle = Balance.RAY_PERIOD - 0.3        # mid-discharge
+				hazard.scale = Vector2(1.6, 1.6)
+				add_child(hazard)
+			return
 		"credits":
 			var t := Title.new()
 			add_child(t)

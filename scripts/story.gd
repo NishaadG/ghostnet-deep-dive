@@ -217,5 +217,12 @@ const ZONE_LINES := [
 	"The Abyss. She's close. I can hear her.",
 ]
 
+# Pip, the first time a save meets each creature (saved in Game.seen_scenes as "tip_<kind>").
+const HAZARD_LINES := {
+	"puffer": "Puffer fish. Don't spook it: puffed up, it's all spikes. Go round, or go past before it puffs.",
+	"piranha": "Piranhas? Out here? The nets drag them down from the river mouth. Keep your speed up and they can't bite.",
+	"ray": "Electric ray. Watch it glow: when it flashes bright, stay out of the ring.",
+}
+
 const ANIMAL_LINES := ["Go on. Swim.", "There you go.", "You're free. Stay away from the nets.", "One more home."]
 const LOW_O2_LINE := "O2 low. Find a canister or I'm towing you up."
