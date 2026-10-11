@@ -1,12 +1,12 @@
 extends Node
 # Developer tools: cheats, teleporting and jump-to-anything. Open the panel with F9 (or the ` key).
 # Everything the panel does goes through this file, so it is easy to read, test, and switch off:
-# set ENABLED to false for a build that must not have cheats.
+# Store builds (the Android export preset has the "store" feature) have no debug tools at all.
 # `active` is the switch between DEBUG mode and the REAL game (title screen button, remembered in
 # settings, or launch with `-- debug` / `-- real`). In the real game F9, the F1-F5 keys and every cheat are off.
 # Autoload name: Debug.
 
-const ENABLED := true
+var enabled := not OS.has_feature("store")      # false in Play Store builds: no panel, keys or cheats
 
 # Metre marks to teleport to (just before each wall, and the start of each zone).
 const TELEPORTS := [
@@ -25,22 +25,22 @@ var _badge: CanvasLayer
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
-	active = ENABLED and bool(Game.settings["debug_mode"])        # Game loads settings first (autoload order)
+	active = enabled and bool(Game.settings["debug_mode"])        # Game loads settings first (autoload order)
 	for arg in OS.get_cmdline_user_args():
 		if arg == "debug":
-			active = ENABLED
+			active = enabled
 		elif arg == "real":
 			active = false
 	_build_badge()
 
 
 func is_on(cheat: String) -> bool:
-	return ENABLED and active and cheats.get(cheat, false)
+	return enabled and active and cheats.get(cheat, false)
 
 
 # Switch between DEBUG mode and the REAL game. Turning debug off also clears every cheat.
 func set_active(on: bool) -> void:
-	active = ENABLED and on
+	active = enabled and on
 	if not active:
 		for cheat in cheats:
 			cheats[cheat] = false
@@ -85,7 +85,7 @@ func toggle_cheat(cheat: String) -> void:
 
 
 func toggle_panel() -> void:
-	if not (ENABLED and active):
+	if not (enabled and active):
 		return
 	if _panel and is_instance_valid(_panel):
 		_panel.queue_free()

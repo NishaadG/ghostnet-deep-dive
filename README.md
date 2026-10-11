@@ -61,6 +61,21 @@ is in `tools/voice_cast.json`. After changing any story text:
 
 A line without a clip just plays silently. Settings has a Voices slider and an ON/OFF switch; music dips while someone speaks.
 
+## Android and Google Play
+
+The phone build uses **Godot 4.6.2 (standard)** with its export templates, JDK 17 and the Android SDK (see `tools/build_android.sh`
+for the paths it expects on a Mac). Package name: `com.varadrane.ghostnet` (permanent).
+
+1. Once: `tools/make_upload_key.sh` creates your private upload key in `~/.config/ghostnet/` (you choose the password). Back that folder up.
+2. Test on your own phone: `tools/build_android.sh test`, then with the phone plugged in (USB debugging on): `adb install -r build/android/ghostnet-test.apk`
+3. Play Store build: `tools/build_android.sh release` makes `build/android/ghostnet.aab` (targets Android 16 / API 36, as Google Play requires).
+4. Listing pictures: `tools/store_screenshots.sh` (screen on); icons: `godot --headless --path . res://tools/store_icons.tscn`.
+5. Everything for the Play Console (listing text, content rating, data safety, closed testing) is in `docs/PLAY_STORE.md`;
+   the privacy policy is `docs/PRIVACY.md`.
+
+Store builds carry the `store` feature: no debug panel, cheats or debug keys. Android's back button works like Esc.
+Raise `version/code` in `export_presets.cfg` (both Android presets) for every upload.
+
 ## Debug mode (F9)
 
 Press **F9** (or the `` ` `` key) on any screen to open the developer panel on the right side of the screen. It has:
@@ -77,7 +92,7 @@ Press **F9** (or the `` ` `` key) on any screen to open the developer panel on t
 In the real game F9, F1 to F5 and every cheat are off, exactly what a player gets. The panel also has a "Switch to REAL game" button,
 and you can choose at launch: `godot --path . -- debug` or `godot --path . -- real`. A small "DEBUG MODE" tag shows in the corner while it is on.
 
-All of it lives in `autoload/debug.gd` (actions) and `ui/debug_panel.gd` (buttons). To ship a build without it, set `ENABLED := false` at the top of `debug.gd`.
+All of it lives in `autoload/debug.gd` (actions) and `ui/debug_panel.gd` (buttons). Builds with the `store` feature tag (the Android preset) have no debug tools at all.
 
 ## Opening and exporting
 

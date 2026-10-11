@@ -16,6 +16,8 @@ config/features=PackedStringArray("4.6", "GL Compatibility")
 boot_splash/bg_color=Color(0.0196, 0.0431, 0.102, 1)
 boot_splash/show_image=false
 config/icon="res://icon.svg"
+config/quit_on_go_back=false
+config/version="1.0.0"
 
 [autoload]
 
@@ -30,8 +32,10 @@ Audio="*res://autoload/audio.gd"
 window/size/viewport_width=1280
 window/size/viewport_height=720
 window/stretch/mode="canvas_items"
+window/handheld/orientation=4
 
 [rendering]
 
 renderer/rendering_method="gl_compatibility"
 renderer/rendering_method.mobile="gl_compatibility"
+textures/vram_compression/import_etc2_astc=true

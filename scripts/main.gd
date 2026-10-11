@@ -227,6 +227,17 @@ func _close_overlay() -> void:
 		_overlay = null
 
 
+# Android's back button does what Esc does (Godot would otherwise quit the app at once;
+# application/config/quit_on_go_back is off in project.godot).
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_WM_GO_BACK_REQUEST:
+		for pressed in [true, false]:
+			var event := InputEventAction.new()
+			event.action = "pause"
+			event.pressed = pressed
+			Input.parse_input_event(event)
+
+
 # Esc opens the menu on every screen except cutscenes (there Esc skips the scene).
 func _unhandled_input(event: InputEvent) -> void:
 	if not event.is_action_pressed("pause") or _overlay != null or _screen is Cutscene:

@@ -25,7 +25,7 @@ func _ready() -> void:
 	_logo.draw.connect(_draw_logo)
 	add_child(_logo)
 	_build_buttons()
-	if Debug.ENABLED:                                 # DEBUG mode or the REAL game (see autoload/debug.gd)
+	if Debug.enabled:                                 # DEBUG mode or the REAL game (see autoload/debug.gd)
 		var mode := UiKit.button("", Vector2(230, 42), Art.MAGENTA, false, 15)
 		mode.position = Vector2(20, 24)
 		var show_mode := func(): mode.text = "MODE:  DEBUG" if Debug.active else "MODE:  REAL GAME"
@@ -115,6 +115,7 @@ func _show_credits() -> void:
 		["Art: every shape, glow and animation is drawn by code, original to this project.", Art.ICE],
 		["Music: two original tracks synthesised by tools/make_music.py. Sound effects: original kit audio.", Art.ICE],
 		["Font: Poppins, SIL Open Font License.   Engine: Godot 4.6, GDScript only, no add-ons.", Art.ICE],
+		["Godot Engine (godotengine.org/license): MIT License, (c) 2014-present Godot Engine contributors, (c) 2007-2014 Juan Linietsky, Ariel Manzur.", Color(Art.ICE, 0.7)],
 		["AI tool disclosure: this game's scripts, art code, docs and tests were written with an AI coding assistant (Claude Code).", Art.AMBER],
 		["Voices: generated with ElevenLabs (elevenlabs.io), an AI text-to-speech service.", Art.AMBER],
 	]

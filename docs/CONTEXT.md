@@ -35,7 +35,7 @@ Style points and ranks, in `scripts/style_score.gd` (scoring rules, ranks, tag b
 
 ## 2c. Debug mode (branch `feature/debug-mode`)
 
-`autoload/debug.gd` + `ui/debug_panel.gd`, opened with F9. Hooks are tiny: `Player` checks `Debug.is_on("god" / "oxygen" / "fuel")`, `Run._hit_wall` checks `"wall_kill"`, and `Run.debug_teleport / debug_spawn` do the moving. Set `Debug.ENABLED := false` for a release without cheats. Test: `tests/debug_mode.tscn`.
+`autoload/debug.gd` + `ui/debug_panel.gd`, opened with F9. Hooks are tiny: `Player` checks `Debug.is_on("god" / "oxygen" / "fuel")`, `Run._hit_wall` checks `"wall_kill"`, and `Run.debug_teleport / debug_spawn` do the moving. Builds with the `store` feature tag (Android preset) switch it off entirely. Test: `tests/debug_mode.tscn`.
 
 ## 3. Decisions the user made (do not undo)
 
